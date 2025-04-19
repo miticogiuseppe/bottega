@@ -51,16 +51,16 @@ const Sales = () => {
                 <div className="d-flex sales-picker align-items-center gap-2 flex-wrap">
                     <div className="form-group">
                         <div className="input-group">
-                            <div className="input-group-text bg-white border"> <i className="ri-calendar-line"></i> </div>
+                            <div className="input-group-text bg-white border"> <i className="ri-calendar-line"/> </div>
                             <SpkFlatpickr inputClass="form-control" options={{ mode: 'range', dateFormat: "Y-m-d" }} onfunChange={handleDateChange} placeholder={["2016-10-10", "2016-10-20"]} />
                         </div>
                     </div>
                     <div className="btn-list">
                         <SpkButton Buttonvariant="white">
-                            <i className="ri-filter-3-line align-middle me-1 lh-1"></i> Filter
+                            <i className="ri-filter-3-line align-middle me-1 lh-1"/ > Filter
                         </SpkButton>
                         <SpkButton Buttonvariant="primary" Customclass="me-0">
-                            <i className="ri-share-forward-line me-1"></i> Share
+                            <i className="ri-share-forward-line me-1"/> Share
                         </SpkButton>
                     </div>
                 </div>
@@ -110,13 +110,13 @@ const Sales = () => {
                                 <Card.Body className="pt-4 px-3">
                                     <div className="d-flex gap-3 mb-3 flex-wrap">
                                         <div className="avatar avatar-md bg-primary-transparent">
-                                            <i className="ti ti-trending-up fs-5"></i>
+                                            <i className="ti ti-trending-up fs-5"/>
                                         </div>
                                         <div className="flex-fill d-flex align-items-start justify-content-between">
                                             <div>
                                                 <span className="fs-11 mb-1 d-block fw-medium">TOTAL ORDERS</span>
                                                 <div className="d-flex align-items-center justify-content-between">
-                                                    <h4 className="mb-0 d-flex align-items-center">3,736<span className="text-success fs-12 ms-2 op-1"><i className="ti ti-trending-up align-middle me-1"></i>0.57%</span></h4>
+                                                    <h4 className="mb-0 d-flex align-items-center">3,736<span className="text-success fs-12 ms-2 op-1"><i className="ti ti-trending-up align-middle me-1"/>0.57%</span></h4>
                                                 </div>
                                             </div>
                                             <Link scroll={false} href="#!" className="text-success fs-12 text-decoration-underline">Earnings ?</Link>
@@ -128,7 +128,7 @@ const Sales = () => {
                                 </Card.Body>
                                 <div className="card-footer border-top border-block-start-dashed">
                                     <div className="d-grid">
-                                        <SpkButton Buttonvariant="primary-ghost" Customclass="fw-medium waves-effect waves-light table-icon">Complete Statistics<i className="ti ti-arrow-narrow-right ms-2 fs-16 d-inline-block"></i></SpkButton>
+                                        <SpkButton Buttonvariant="primary-ghost" Customclass="fw-medium waves-effect waves-light table-icon">Complete Statistics<i className="ti ti-arrow-narrow-right ms-2 fs-16 d-inline-block"/></SpkButton>
                                     </div>
                                 </div>
                             </Card>
@@ -136,8 +136,8 @@ const Sales = () => {
                     </Row>
                 </Col>
                 <Col xl={4}>
-                    <Row>
-                        <Col xl={12}>
+                  {/*  <Row>
+                         <Col xl={12}>
                             <Card className="custom-card main-dashboard-banner overflow-hidden">
                                 <Card.Body className="p-4">
                                     <div className="row justify-content-between">
@@ -152,8 +152,8 @@ const Sales = () => {
                                     </div>
                                 </Card.Body>
                             </Card>
-                        </Col>
-                        <Col xl={12}>
+                        </Col> */}
+                        {/* <Col xl={12}>
                             <Card className="custom-card overflow-hidden">
                                 <Card.Header className="justify-content-between">
                                     <Card.Title>
@@ -201,21 +201,21 @@ const Sales = () => {
                                     </div>
                                 </Card.Body>
                             </Card>
-                        </Col>
-                    </Row>
+                        </Col> 
+                    </Row> */}
                 </Col>
             </Row>
             {/* <!-- End:: row-1 --> */}
 
             {/* <!-- Start:: row-2 --> */}
-            <Row>
+            {/* <Row>
                 <Col xxl={3} xl={6}>
                     <Card className="custom-card overflow-hidden">
                         <Card.Header className="justify-content-between">
                             <Card.Title>
                                 Latest Transactions
                             </Card.Title>
-                            <Link href="#!" scroll={false} className="btn btn-light btn-wave btn-sm text-muted">View All<i className="ti ti-arrow-narrow-right ms-1"></i></Link>
+                            <Link href="#!" scroll={false} className="btn btn-light btn-wave btn-sm text-muted">View All<i className="ti ti-arrow-narrow-right ms-1"/></Link>
                         </Card.Header>
                         <Card.Body className="p-0 pt-1">
                             <div className="table-responsive">
@@ -394,7 +394,7 @@ const Sales = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-            </Row>
+            </Row> */}
             {/* <!-- End:: row-2 --> */}
 
             {/* <!-- Start:: row-3 --> */}
@@ -445,8 +445,8 @@ const Sales = () => {
                                             </td>
                                             <td>
                                                 <div className="btn-list">
-                                                    <SpkButton Buttonvariant="success-light" Size="sm" Customclass="btn-icon"><i className="ri-pencil-line"></i></SpkButton>
-                                                    <SpkButton Buttonvariant="danger-light" Size="sm" Customclass="btn-icon" onClickfunc={() => handleRemove(idx.id)}><i className="ri-delete-bin-line"></i></SpkButton>
+                                                    <SpkButton Buttonvariant="success-light" Size="sm" Customclass="btn-icon"><i className="ri-pencil-line"/></SpkButton>
+                                                    <SpkButton Buttonvariant="danger-light" Size="sm" Customclass="btn-icon" onClickfunc={() => handleRemove(idx.id)}><i className="ri-delete-bin-line"/></SpkButton>
                                                 </div>
                                             </td>
                                         </tr>

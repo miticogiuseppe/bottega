@@ -19,7 +19,7 @@ const Error401 = () => {
                                     <p className="error-text mb-4">401</p>
                                     <p className="fs-4 fw-normal mb-2">Oops, the page you are trying to access does not exist ?</p>
                                     <p className="fs-15 mb-5 text-muted">The requested page is not available. It might have been relocated, deleted, or never existed.</p>
-                                    <Link scroll={false} href="/dashboard/sales" className="btn btn-primary"><i className="ri-arrow-left-line align-middle me-1 d-inline-block"></i> BACK TO HOME PAGE</Link>
+                                    <Link scroll={false} href="/dashboard/sales" className="btn btn-primary"><i className="ri-arrow-left-line align-middle me-1 d-inline-block"/> BACK TO HOME PAGE</Link>
                                 </Col>
                             </div>
                         </div>
