@@ -195,6 +195,13 @@ export const MENUITEMS = [
         selected: false,
         dirchange: false,
       },
+
+      { path: "/apps/full-calendar", 
+        type: "link", 
+        active: false, 
+        selected: false, 
+        title: "Full Calendar" 
+      },
     ]
   } 
 ]   
