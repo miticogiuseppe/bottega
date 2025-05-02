@@ -11,8 +11,47 @@ import SpkButton from "../../../../../shared/@spk-reusable-components/reusable-u
 import SpkBadge from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-badge";
 import listPlugin from "@fullcalendar/list";
 import Seo from "../../../../../shared/layouts-components/seo/seo";
+import * as XLSX from "xlsx";
+
+const readExcel = async () => {
+  try {
+    const response = await fetch("/APPMERCE-000.xlsx");
+    const data = await response.arrayBuffer();
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+    if (rawData.length < 2) {
+      console.error("Errore: Il file sembra vuoto!");
+      return [];
+    }
+
+    const columnNames = rawData[0];
+    const formattedData = rawData.slice(1).map(row => {
+      let obj = {};
+      columnNames.forEach((colName, index) => {
+        obj[colName] = row[index] || "";
+      });
+      return obj;
+    });
+
+    console.log("Dati estratti:", formattedData); // ✅ Controlla i dati nella console
+    return formattedData;
+  } catch (error) {
+    console.error("Errore nella lettura del file Excel:", error);
+    return [];
+  }
+};
+
+
 
 const FullCalender = () => {
+
+  const [events, setEvents] = useState([]);
+  const [tableData, setTableData] = useState([]);
+
+
 
   let eventGuid = 0;
   const todayStr = new Date().toISOString().replace(/T.*$/, ""); // YYYY-MM-DD of today
@@ -93,6 +132,12 @@ const FullCalender = () => {
   const [state] = useState(initialstate1);
 
   useEffect(() => {
+    const fetchEvents = async () => {
+      const excelEvents = await readExcel();
+      setEvents(excelEvents);
+      setTableData(excelEvents); // 📌 Salva anche i dati per la finestra
+    };
+    fetchEvents();
     const draggableEl = document.getElementById("external-events");
     new Draggable(draggableEl, {
       itemSelector: ".fc-event",
@@ -144,6 +189,57 @@ const FullCalender = () => {
       });
     }
   };
+
+  const openDataWindow = () => {
+    if (!tableData || tableData.length === 0) {
+      alert("Nessun dato disponibile!");
+      return;
+    }
+  
+    const newWindow = window.open("", "_blank");
+  
+    if (!newWindow) {
+      alert("Errore: impossibile aprire la finestra!");
+      return;
+    }
+  
+    const content = `
+      <html>
+        <head>
+          <title>Dati Ordini</title>
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f9fa; }
+            .container { max-width: 100%; margin: auto; }
+            .card { border: 1px solid #dee2e6; border-radius: 10px; padding: 15px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); }
+            .table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 10px; text-align: left; border: 1px solid #dee2e6; }
+            th { background-color: #007bff; color: white; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="card">
+              <h2 class="text-center">Dati Ordini</h2>
+              <table class="table table-striped table-bordered">
+                <thead>
+                  <tr>${Object.keys(tableData[0] || {}).map(col => `<th>${col}</th>`).join("")}</tr>
+                </thead>
+                <tbody>
+                  ${tableData.map(row => `<tr>${Object.values(row).map(value => `<td>${value}</td>`).join("")}</tr>`).join("")}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  
+    newWindow.document.write(content);
+    newWindow.document.close();
+  };
+  
+  
   // render() {
   return (
     <Fragment>
@@ -163,8 +259,20 @@ const FullCalender = () => {
             <Card.Body className="">
               <div id='calendar2' className="overflow-hidden">
                 <FullCalendar plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
-                  headerToolbar={{ left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek" }}
-                  initialView="dayGridMonth" editable={true} selectable={true} selectMirror={true} dayMaxEvents={true}
+                  headerToolbar={{ 
+                    left: "prev,next today", 
+                    center: "title", 
+                    right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek" 
+                  }}
+                  initialView="dayGridMonth" 
+                  editable={true} 
+                  selectable={true} 
+                  selectMirror={true} 
+                  dayMaxEvents={true}
+                  events={events}
+                  select={handleDateSelect}
+                  eventContent={renderEventContent}
+                  eventClick={handleEventClick}
                   initialEvents={INITIAL_EVENTS} select={handleDateSelect} eventContent={renderEventContent} eventClick={handleEventClick}
                   eventsSet={handleEvents}
                 />
@@ -243,6 +351,47 @@ const FullCalender = () => {
           </Card>
         </Col>
       </Row>
+       {/* ✅ Tabella per mostrare i dati dell'Excel */}
+       <Card className="custom-card mt-4">
+  <Card.Header>
+    <div className="card-title">Dati Ordini</div>
+  </Card.Header>
+  <Card.Body>
+    <table className="table table-striped table-bordered">
+      <thead className="table-primary">
+        <tr>
+          {["Prog", "Des. Agente", "Cli", "Ragione sociale", "Data ord", "Sez", "Nr.ord", "Articolo", "Descrizione", "Data Cons.", "Qta da ev", "QTAev II UM"].map((col) => (
+            <th key={col}>{col}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {tableData.map((row, index) => (
+          <tr key={index}>
+            <td>{row["Prog"]}</td>
+            <td>{row["Des. Agente"]}</td>
+            <td>{row["Cli"]}</td>
+            <td>{row["Ragione sociale"]}</td>
+            <td><SpkBadge variant="primary">{row["Data ord"]}</SpkBadge></td>
+            <td>{row["Sez"]}</td>
+            <td><SpkBadge variant="primary1">{row["Nr.ord"]}</SpkBadge></td>
+            <td><SpkBadge variant="primary3">{row["Articolo"]}</SpkBadge></td>
+            <td>{row["Descrizione"]}</td>
+            <td>{row["Data Cons."]}</td>
+            <td>{row["Qta da ev"]}</td>
+            <td>{row["QTAev II UM"]}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </Card.Body>
+</Card>
+
+
+      {/* 📌 Pulsante per aprire la finestra con la tabella */}
+      <SpkButton Buttonvariant="primary" onClick={openDataWindow}>
+        Apri Tabella Ordini
+      </SpkButton>
       {/* <!--End::row-1 --> */}
     </Fragment>
   )
