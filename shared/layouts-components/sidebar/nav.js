@@ -196,5 +196,16 @@ export const MENUITEMS = [
         dirchange: false,
       },
     ]
-  } 
+  }, 
+
+  {
+    path:"/Calendario",
+    title: "Calendario",
+    // icon: Calendar, 
+    type: "link", 
+    active: false,
+    selected: false,
+    dirchange: false,
+    
+  },
 ]   
