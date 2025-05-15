@@ -13,6 +13,10 @@
   },
   "dependencies": {
     "@emotion/styled": "^11.13.0",
+    "@fullcalendar/daygrid": "^6.1.17",
+    "@fullcalendar/interaction": "^6.1.17",
+    "@fullcalendar/react": "^6.1.17",
+    "@fullcalendar/timegrid": "^6.1.17",
     "@reduxjs/toolkit": "^2.3.0",
     "@simonwep/pickr": "^1.9.1",
     "apexcharts": "^3.54.1",
@@ -30,6 +34,7 @@
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
     "simplebar-react": "^3.2.6",
+    "xlsx": "^0.18.5",
     "yup": "^1.4.0"
   },
   "devDependencies": {
