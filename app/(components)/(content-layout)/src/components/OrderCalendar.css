@@ -1,32 +1,3 @@
-/* .fc-daygrid-event {
-  margin-bottom: 4px; /* o 4px se vuoi più respiro 
-} */
-
-/* .fc-event-title {
-  line-height: 1.2;
-  padding: 2px 4px;
-} */
-
-/* .fc-daygrid-day-frame {
-  overflow: auto;
-} */
-/* .fc-daygrid-event .fc-event-title {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-} */
-
-/* .fc-daygrid-event {
-  min-height: 100px; /* o un valore coerente con il tuo contenuto 
-  overflow: hidden;
-} */
-
-/* .fc-daygrid-event .fc-event-title {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-} */
 .more-link-event {
   color: #666;
   font-style: italic;

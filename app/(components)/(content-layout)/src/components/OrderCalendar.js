@@ -7,16 +7,7 @@ import "./OrderCalendar.css";
 const OrderCalendar = ({ orders }) => {
   const [selectedOrders, setSelectedOrders] = useState([]);
 
-  // const formattedEvents = orders.map((order) => ({
-  //   title: order.Prodotto ?? "Sconosciuto",
-  //   start: order["Data Ordine"].split("/").reverse().join("-"),
-  //   extendedProps: {
-  //     cliente: order["Cliente"] ?? "N/A",
-  //     quantità: order["Quantità"] ?? "N/A",
-  //     stato: order["Stato"] ?? "N/A"
-  //   },
-  // }));
-
+  // Funzione per convertire le date di Excel in formato JavaScript
   const excelDateToJSDate = (serial) => {
     const utc_days = Math.floor(serial - 25569);
     const utc_value = utc_days * 86400;
@@ -36,7 +27,7 @@ const OrderCalendar = ({ orders }) => {
     eventiPerData[data].push(order);
   });
 
-  // orders.forEach(order => console.log("Tipo Data ord:", typeof order["Data ord"], "Valore:", order["Data ord"]));
+  // Raggruppa gli ordini per data, limitando a 2 eventi per data
   const groupedByDate = {};
 
   orders.forEach((order) => {
@@ -60,6 +51,7 @@ const OrderCalendar = ({ orders }) => {
     }
   });
 
+  // Trasforma gli eventi in un formato compatibile con FullCalendar
   const formattedEvents = Object.entries(eventiPerData).flatMap(
     ([data, eventi]) => {
       const visibili = eventi.slice(0, 2).map((order) => ({
@@ -90,8 +82,7 @@ const OrderCalendar = ({ orders }) => {
     }
   );
 
-  // formattedEvents.forEach(event => console.log("Data evento trasformata:", event.start));
-
+  // Gestisce il click sugli eventi
   const handleEventClick = (info) => {
     const isMoreLink = info.event.extendedProps.isMoreLink;
     const clickedDate = info.event.startStr;
