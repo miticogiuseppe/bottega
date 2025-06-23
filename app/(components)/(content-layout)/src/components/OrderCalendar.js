@@ -4,6 +4,13 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import OrderListModal from "./OrderListModal";
 import "./OrderCalendar.css";
 
+import Pageheader from "../../../../../shared/layouts-components/page-header/pageheader";
+import { Card, CardBody, Col, Row } from "react-bootstrap";
+import React, { Fragment } from "react";
+import Seo from "../../../../../shared/layouts-components/seo/seo";
+import listPlugin from "@fullcalendar/list";
+import timeGridPlugin from "@fullcalendar/timegrid";
+
 const OrderCalendar = ({ orders }) => {
   const [selectedOrders, setSelectedOrders] = useState([]);
 
@@ -14,7 +21,7 @@ const OrderCalendar = ({ orders }) => {
     return new Date(utc_value * 1000).toISOString().split("T")[0]; // Ottiene YYYY-MM-DD
   };
 
-  //Eventi per data
+  //Eventi presi per data
   const eventiPerData = {};
 
   orders.forEach((order) => {
@@ -106,23 +113,53 @@ const OrderCalendar = ({ orders }) => {
   };
 
   return (
-    <div>
-      <FullCalendar
-        plugins={[dayGridPlugin]}
-        initialView="dayGridMonth"
-        events={formattedEvents}
-        eventClick={handleEventClick}
-        eventOrder={(a, b) => {
-          if (a.extendedProps?.isMoreLink) return 1;
-          if (b.extendedProps?.isMoreLink) return -1;
-          return 0;
-        }}
+    <Fragment>
+      {/* <!-- Page Header --> */}
+      <Seo title="Calendario APPMERCE di Copral" />
+      <Pageheader
+        title="Apps"
+        currentpage="Calendario Ordini"
+        activepage="Calendario Ordini"
       />
-      <OrderListModal
-        orders={selectedOrders}
-        onClose={() => setSelectedOrders([])}
-      />
-    </div>
+
+      {/* <!-- Page Header Close --> */}
+
+      {/* <!-- Start::row-1 --> */}
+      <Row>
+        <Col xl={12} className="mb-4">
+          <Card className="custom-card overflow-hidden">
+            <Card.Header className="">
+              <div className="card-title">Full Calendar</div>
+            </Card.Header>
+            <Card.Body className="">
+              <div id="calendar2" className="overflow-hidden">
+                <FullCalendar
+                  plugins={[dayGridPlugin, listPlugin, timeGridPlugin]}
+                  headerToolbar={{
+                    left: "prev,next today",
+                    center: "title",
+                    right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+                  }}
+                  initialView="dayGridMonth"
+                  events={formattedEvents}
+                  eventClick={handleEventClick}
+                  eventOrder={(a, b) => {
+                    if (a.extendedProps?.isMoreLink) return 1;
+                    if (b.extendedProps?.isMoreLink) return -1;
+                    return 0;
+                  }}
+                />
+                <OrderListModal
+                  orders={selectedOrders}
+                  onClose={() => setSelectedOrders([])}
+                />
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+      {/* <!--End::row-1 --> */}
+    </Fragment>
   );
 };
 
