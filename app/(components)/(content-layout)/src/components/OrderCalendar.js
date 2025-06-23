@@ -119,7 +119,7 @@ const OrderCalendar = ({ orders }) => {
       <Pageheader
         title="Apps"
         currentpage="Calendario Ordini"
-        activepage="Calendario Ordini"
+        activepage="Calendario Ordini APPMERCE di Copral"
       />
 
       {/* <!-- Page Header Close --> */}
@@ -129,7 +129,7 @@ const OrderCalendar = ({ orders }) => {
         <Col xl={12} className="mb-4">
           <Card className="custom-card overflow-hidden">
             <Card.Header className="">
-              <div className="card-title">Full Calendar</div>
+              <div className="card-title">Calendario Ordini</div>
             </Card.Header>
             <Card.Body className="">
               <div id="calendar2" className="overflow-hidden">

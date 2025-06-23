@@ -18,7 +18,7 @@ export default function Home() {
     // Carica automaticamente il file Excel
     console.log("sto caricando il file excel");
     const fetchOrders = async () => {
-      const response = await fetch("/data/APPMERCE-000.xlsx"); // Percorso aggiornato
+      const response = await fetch("/data/APPMERCE-000.xlsx");
       const blob = await response.blob();
       const newOrders = await loadOrdersFromExcel(blob);
 
@@ -32,9 +32,6 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">
-        Calendario Ordini APPMERCE di Copral 📅
-      </h1>
       <OrderCalendar orders={orders} />
     </div>
   );
