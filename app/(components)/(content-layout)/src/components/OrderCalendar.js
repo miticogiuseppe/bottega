@@ -3,7 +3,6 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import OrderListModal from "./OrderListModal";
 import "./OrderCalendar.css";
-
 import Pageheader from "../../../../../shared/layouts-components/page-header/pageheader";
 import { Card, CardBody, Col, Row } from "react-bootstrap";
 import React, { Fragment } from "react";
@@ -121,12 +120,11 @@ const OrderCalendar = ({ orders }) => {
         currentpage="Calendario Ordini"
         activepage="Calendario Ordini APPMERCE di Copral"
       />
-
       {/* <!-- Page Header Close --> */}
 
       {/* <!-- Start::row-1 --> */}
       <Row>
-        <Col xl={12} className="mb-4">
+        <Col xl={12} className="mb-0">
           <Card className="custom-card overflow-hidden">
             <Card.Header className="">
               <div className="card-title">Calendario Ordini</div>
