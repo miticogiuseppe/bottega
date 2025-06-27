@@ -12,6 +12,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 
 const OrderCalendar = ({ orders }) => {
   const [selectedOrders, setSelectedOrders] = useState([]);
+  const [selectedAgent, setSelectedAgent] = useState("Tutti");
 
   // Funzione per convertire le date di Excel in formato JavaScript
   const excelDateToJSDate = (serial) => {
@@ -19,6 +20,17 @@ const OrderCalendar = ({ orders }) => {
     const utc_value = utc_days * 86400;
     return new Date(utc_value * 1000).toISOString().split("T")[0]; // Ottiene YYYY-MM-DD
   };
+
+  // Ricava tutti gli agenti unici
+  const allAgents = Array.from(
+    new Set(orders.map((order) => order.Agente || "Sconosciuto"))
+  );
+
+  // Filtra gli ordini per agente selezionato
+  const filteredOrders =
+    selectedAgent === "Tutti"
+      ? orders
+      : orders.filter((order) => order.Agente === selectedAgent);
 
   //Eventi presi per data
   const eventiPerData = {};
@@ -52,6 +64,7 @@ const OrderCalendar = ({ orders }) => {
           cliente: order.Cli ?? "N/A",
           quantità: order["Qta da ev"] ?? "N/A",
           sezione: order.Sez ?? "N/A",
+          agente: order["Des. Agente"] ?? "N/A",
         },
       });
     }
@@ -67,6 +80,7 @@ const OrderCalendar = ({ orders }) => {
           cliente: order.Cli ?? "N/A",
           quantità: order["Qta da ev"] ?? "N/A",
           sezione: order.Sez ?? "N/A",
+          agente: order["Des. Agente"] ?? "N/A",
         },
       }));
 
@@ -107,6 +121,7 @@ const OrderCalendar = ({ orders }) => {
         cliente: order.Cli ?? "N/A",
         quantità: order["Qta da ev"] ?? "N/A",
         sezione: order.Sez ?? "N/A",
+        agente: order["Des. Agente"] ?? "N/A",
       }))
     );
   };
@@ -121,6 +136,28 @@ const OrderCalendar = ({ orders }) => {
         activepage="Calendario Ordini APPMERCE di Copral"
       />
       {/* <!-- Page Header Close --> */}
+
+      {/* Filtro agente */}
+      <Row className="mb-3">
+        <Col xl={12}>
+          <label htmlFor="agent-filter" style={{ marginRight: "0.5rem" }}>
+            Filtra per Agente:
+          </label>
+          <select
+            id="agent-filter"
+            value={selectedAgent}
+            onChange={(e) => setSelectedAgent(e.target.value)}
+            style={{ padding: "0.3rem", minWidth: "150px" }}
+          >
+            <option value="Tutti">Tutti</option>
+            {allAgents.map((agent, idx) => (
+              <option key={idx} value={agent}>
+                {agent}
+              </option>
+            ))}
+          </select>
+        </Col>
+      </Row>
 
       {/* <!-- Start::row-1 --> */}
       <Row>
