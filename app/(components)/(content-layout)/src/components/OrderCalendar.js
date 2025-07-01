@@ -4,7 +4,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import OrderListModal from "./OrderListModal";
 import "./OrderCalendar.css";
 import Pageheader from "../../../../../shared/layouts-components/page-header/pageheader";
-import { Card, Col, Row } from "react-bootstrap";
+import { Card, CardBody, Col, Row } from "react-bootstrap";
 import React, { Fragment } from "react";
 import Seo from "../../../../../shared/layouts-components/seo/seo";
 import listPlugin from "@fullcalendar/list";
@@ -12,7 +12,8 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 
 const OrderCalendar = ({ orders }) => {
   const [selectedOrders, setSelectedOrders] = useState([]);
-  const [selectedAgent, setSelectedAgent] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState("Tutti");
+  const [selectedClient, setSelectedClient] = useState("Tutti");
 
   const excelDateToJSDate = (serial) => {
     const utc_days = Math.floor(serial - 25569);
@@ -20,17 +21,16 @@ const OrderCalendar = ({ orders }) => {
     return new Date(utc_value * 1000).toISOString().split("T")[0];
   };
 
-  const agenti = [
-    ...new Set(orders.map((order) => order["Des. Agente"]).filter(Boolean)),
-  ];
-
-  const ordersFiltrati = orders.filter(
-    (order) => selectedAgent === "" || order["Des. Agente"] === selectedAgent
-  );
+  const filteredOrders = orders.filter((order) => {
+    const matchAgent =
+      selectedAgent === "Tutti" || order["Des. Agente"] === selectedAgent;
+    const matchClient =
+      selectedClient === "Tutti" || order["Ragione sociale"] === selectedClient;
+    return matchAgent && matchClient;
+  });
 
   const eventiPerData = {};
-
-  ordersFiltrati.forEach((order) => {
+  filteredOrders.forEach((order) => {
     const data =
       typeof order["Data ord"] === "number"
         ? excelDateToJSDate(order["Data ord"])
@@ -46,9 +46,10 @@ const OrderCalendar = ({ orders }) => {
         title: order.Articolo ?? "Sconosciuto",
         start: data,
         extendedProps: {
-          cliente: order.Cli ?? "N/A",
+          cliente: order["Ragione sociale"] ?? "N/A",
           quantità: order["Qta da ev"] ?? "N/A",
           sezione: order.Sez ?? "N/A",
+          agente: order["Des. Agente"] ?? "N/A",
         },
       }));
 
@@ -73,7 +74,7 @@ const OrderCalendar = ({ orders }) => {
   const handleEventClick = (info) => {
     const clickedDate = info.event.startStr;
 
-    const ordiniGiorno = ordersFiltrati.filter((order) => {
+    const ordiniGiorno = filteredOrders.filter((order) => {
       const dataOrdine =
         typeof order["Data ord"] === "number"
           ? excelDateToJSDate(order["Data ord"])
@@ -84,13 +85,24 @@ const OrderCalendar = ({ orders }) => {
 
     setSelectedOrders(
       ordiniGiorno.map((order) => ({
-        cliente: order.Cli ?? "N/A",
+        cliente: order["Ragione sociale"] ?? "N/A",
         quantità: order["Qta da ev"] ?? "N/A",
         sezione: order.Sez ?? "N/A",
         agente: order["Des. Agente"] ?? "N/A",
       }))
     );
   };
+
+  const agenti = [
+    "Tutti",
+    ...Array.from(new Set(orders.map((o) => o["Des. Agente"]).filter(Boolean))),
+  ];
+  const clienti = [
+    "Tutti",
+    ...Array.from(
+      new Set(orders.map((o) => o["Ragione sociale"]).filter(Boolean))
+    ),
+  ];
 
   return (
     <Fragment>
@@ -100,33 +112,36 @@ const OrderCalendar = ({ orders }) => {
         currentpage="Calendario Ordini"
         activepage="Calendario Ordini APPMERCE di Copral"
       />
-
       <Row>
-        <Col xl={12}>
+        <Col xl={12} className="mb-0">
           <Card className="custom-card overflow-hidden">
-            <Card.Header className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-              <div className="card-title mb-0">Calendario Ordini</div>
-
-              <div>
-                <label htmlFor="agenteSelect" className="form-label me-2 mb-0">
-                  Agente:
-                </label>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <div className="card-title">Calendario Ordini</div>
+              <div className="d-flex gap-3 align-items-center">
+                <label className="mb-0">Agente:</label>
                 <select
-                  id="agenteSelect"
-                  className="form-select form-select-sm d-inline-block w-auto"
                   value={selectedAgent}
                   onChange={(e) => setSelectedAgent(e.target.value)}
                 >
-                  <option value="">Tutti</option>
                   {agenti.map((agente, idx) => (
                     <option key={idx} value={agente}>
                       {agente}
                     </option>
                   ))}
                 </select>
+                <label className="mb-0">Cliente:</label>
+                <select
+                  value={selectedClient}
+                  onChange={(e) => setSelectedClient(e.target.value)}
+                >
+                  {clienti.map((cliente, idx) => (
+                    <option key={idx} value={cliente}>
+                      {cliente}
+                    </option>
+                  ))}
+                </select>
               </div>
             </Card.Header>
-
             <Card.Body>
               <div id="calendar2" className="overflow-hidden">
                 <FullCalendar
