@@ -1,7 +1,5 @@
 @forward "../public/assets/css/styles.css";
 
-
-
 //*** ICONS IMPORTS ***//
 @import url("../public/assets/icon-fonts/RemixIcons/fonts/remixicon.css");
 @import url("../public/assets/icon-fonts/feather/feather.css");
@@ -12,7 +10,7 @@
 
 //*** PLUGINS CSS IMPORTS ***//
 
-@import 'simplebar-react/dist/simplebar.min.css';
+@import "simplebar-react/dist/simplebar.min.css";
 @import "flatpickr/dist/flatpickr.css";
 @import "@simonwep/pickr/dist/themes/classic.min.css";
 @import "@simonwep/pickr/dist/themes/monolith.min.css";
