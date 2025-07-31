@@ -124,7 +124,15 @@ export const MENUITEMS = [
         type: "link",
         active: false,
         selected: false,
-        title: "Sales",
+        title: "Generale",
+      },
+
+      {
+        title: "Dashboard 4.0",
+        type: "link",
+        active: false,
+        selected: false,
+        path: "/pages/empty",
       },
     ],
   },
@@ -327,6 +335,14 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         title: "Empty",
+      },
+
+      {
+        path: "/pages/empty",
+        type: "link",
+        active: false,
+        selected: false,
+        title: "Amministrativa",
       },
 
       {
