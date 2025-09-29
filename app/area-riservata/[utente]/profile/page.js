@@ -1,4 +1,4 @@
-// app/(components)/(content-layout)/pages/profile/page.js
+// app/areariservata/[utente]/profile/page.js
 "use client";
 import ProfileComponent from "@/app/components/ProfileComponent";
 
