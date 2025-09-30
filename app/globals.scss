@@ -15,3 +15,9 @@
 @import "@simonwep/pickr/dist/themes/classic.min.css";
 @import "@simonwep/pickr/dist/themes/monolith.min.css";
 @import "@simonwep/pickr/dist/themes/nano.min.css";
+
+.authentication .desktop-logo,
+.authentication .desktop-white {
+  height: 3.2rem;
+  line-height: 3.2rem;
+}

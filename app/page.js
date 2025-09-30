@@ -72,26 +72,30 @@ const page = () => {
             <div className="row justify-content-center align-items-center authentication authentication-basic h-100 pt-3">
               <Col xxl={4} xl={5} lg={5} md={6} sm={8} className="col-12">
                 <div className="mb-3 d-flex justify-content-center">
-                  <Link href="dashboard/sales/">
+                  <a
+                    href="https://alfredsupply.it"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <img
                       src={`${
                         process.env.NODE_ENV === "production" ? basePath : ""
-                      }/assets/images/brand-logos/desktop-white.png`}
+                      }/assets/images/brand-logos/logo-supply-cerchio.png`}
                       alt="logo"
                       className="desktop-logo"
                     />
-                  </Link>
+                  </a>
                 </div>
                 <Card className="custom-card my-4">
                   <Tab.Container
                     id="left-tabs-example"
                     defaultActiveKey="react"
                   >
-                    <Nav
+                    {/* <Nav
                       variant="pills"
                       className="justify-content-center authentication-tabs"
                     >
-                      <Nav.Item>
+                      <Nav.Item className="d-none">
                         <Nav.Link eventKey="react">
                           <img
                             src={`${
@@ -104,7 +108,7 @@ const page = () => {
                           />
                         </Nav.Link>
                       </Nav.Item>
-                      <Nav.Item>
+                      <Nav.Item className="d-none">
                         <Nav.Link eventKey="firebase">
                           <img
                             src={`${
@@ -117,7 +121,7 @@ const page = () => {
                           />
                         </Nav.Link>
                       </Nav.Item>
-                    </Nav>
+                    </Nav> */}
                     <Tab.Content>
                       {/* React Tab (Hardcoded admin + Firebase login) */}
                       <Tab.Pane eventKey="react" className="border-0">
