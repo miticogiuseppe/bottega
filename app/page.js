@@ -1,13 +1,12 @@
 "use client";
-import { basePath } from "../next.config";
-import SpkAlert from "../shared/@spk-reusable-components/reusable-uielements/spk-alert";
-import SpkButton from "../shared/@spk-reusable-components/reusable-uielements/spk-button";
-import { auth } from "../shared/firebase/firebaseapi";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Card, Col, Form, Nav, Tab } from "react-bootstrap";
+import { basePath } from "../next.config";
+import SpkAlert from "../shared/@spk-reusable-components/reusable-uielements/spk-alert";
+import { auth } from "../shared/firebase/firebaseapi";
 
 const page = () => {
   const [passwordshow1, setpasswordshow1] = useState(false);
