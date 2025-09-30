@@ -124,7 +124,7 @@ const page = () => {
                       <Tab.Pane eventKey="react" className="border-0">
                         <Card.Body>
                           <p className="h5 mb-2 text-center">Sign In</p>
-                          <p className="mb-4 text-muted op-7 fw-normal text-center">
+                          {/*  <p className="mb-4 text-muted op-7 fw-normal text-center">
                             Welcome back Henry !
                           </p>
                           <div className="d-flex mb-3 justify-content-between gap-2 flex-wrap flex-lg-nowrap">
@@ -148,10 +148,10 @@ const page = () => {
                                 Signup with Google
                               </span>
                             </SpkButton>
-                          </div>
+                          </div> 
                           <div className="text-center my-3 authentication-barrier">
                             <span>OR</span>
-                          </div>
+                          </div> */}
                           <div className="row gy-3">
                             {err && <SpkAlert variant="danger">{err}</SpkAlert>}
                             <Col xl={12}>
