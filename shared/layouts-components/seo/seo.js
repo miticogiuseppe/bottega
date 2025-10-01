@@ -1,16 +1,12 @@
-"use client"
-import React, { useEffect } from 'react';
+"use client";
+import React, { useEffect } from "react";
 
-const Seo = ({ title }) => {
-
+const Seo = ({ siteName = "SupplyChainItalia", title }) => {
   useEffect(() => {
-    document.title = `Xintra - ${title}`
-  }, [])
+    document.title = title ? `${title} | ${siteName}` : siteName;
+  }, [title, siteName]);
 
-  return (
-    <>
-    </>
-  )
-}
+  return <></>;
+};
 
-export default Seo
+export default Seo;

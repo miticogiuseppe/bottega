@@ -21,3 +21,9 @@
   height: 3.2rem;
   line-height: 3.2rem;
 }
+.sc-container {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+}

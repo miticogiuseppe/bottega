@@ -1,3 +1,5 @@
+import { read } from "xlsx";
+
 const Dashboardicon = (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -125,6 +127,7 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         title: "Generale",
+        ready: true,
       },
 
       {
@@ -133,6 +136,7 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         path: "/pages/empty",
+        ready: true,
       },
     ],
   },
@@ -220,6 +224,7 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         path: "/Calendario",
+        ready: true,
       },
     ],
   },
@@ -335,6 +340,7 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         title: "Empty",
+        ready: false,
       },
 
       {
@@ -343,6 +349,7 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         title: "Amministrativa",
+        ready: true,
       },
 
       {
@@ -351,6 +358,7 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         title: "Profilo",
+        ready: true,
       },
       // {
       //   path: "/pages/profile",
@@ -365,7 +373,32 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         title: "Profile Settings",
+        ready: false,
       },
     ],
   },
 ];
+
+// FLAG DEMO
+const isDemo = process.env.NEXT_PUBLIC_DEMO === "true";
+
+// FILTRO AUTOMATICO
+function filterMenu(items) {
+  return items
+    .map((item) => {
+      const newItem = { ...item };
+
+      if (newItem.children) {
+        newItem.children = filterMenu(newItem.children);
+      }
+
+      const isReady = newItem.ready !== undefined ? newItem.ready : true;
+
+      if (isDemo && !isReady) return null;
+      return newItem;
+    })
+    .filter(Boolean);
+}
+
+// EXPORT DEL MENU FILTRATO
+export const FILTERED_MENU = filterMenu(MENUITEMS);

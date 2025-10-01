@@ -11,6 +11,7 @@ import listPlugin from "@fullcalendar/list";
 import timeGridPlugin from "@fullcalendar/timegrid";
 
 const OrderCalendar = ({ orders }) => {
+  //console.log("Orders in OrderCalendar:", orders);
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [selectedAgent, setSelectedAgent] = useState("Tutti");
   const [selectedClient, setSelectedClient] = useState("Tutti");
