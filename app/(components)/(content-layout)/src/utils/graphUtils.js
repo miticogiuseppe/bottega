@@ -166,8 +166,17 @@ const createSeries = (countArray) => {
     },
   ];
 };
-const createOptions = (countArray, keyCol, formatFunc = undefined) => {
+const createOptions = (
+  countArray,
+  keyCol,
+  formatFunc = undefined,
+  chartType = "bar"
+) => {
   let options = _.cloneDeep(defaultOptions);
+  options.chart = {
+    ...options.chart,
+    type: chartType,
+  };
   options.xaxis.categories = _.map(countArray, (o) =>
     o[keyCol] ? (formatFunc ? formatFunc(o[keyCol]) : o[keyCol]) : ""
   );
