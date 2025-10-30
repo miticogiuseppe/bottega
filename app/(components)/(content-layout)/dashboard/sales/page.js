@@ -111,8 +111,11 @@ const Sales = () => {
       jsonSheet = filterSheet(jsonSheet, "Des. Agente", selectedAgent);
     const counters = sheetCount(jsonSheet, ["Data ord"]);
     const series = createSeries(counters);
-    const options = createOptions(counters, "Data ord", (d) =>
-      d.format("DD/MM/YYYY")
+    const options = createOptions(
+      counters,
+      "Data ord",
+      (d) => d.format("DD/MM/YYYY"),
+      "bar"
     );
     setGraphSeries(series);
     setGraphOptions(options);
@@ -221,11 +224,11 @@ const Sales = () => {
                 </Card.Header>
                 <Card.Body>
                   <div id="sales-overview">
-                    {graphSeries && graphOptions && (
+                    {graphSeries.length > 0 && graphOptions?.chart?.type && (
                       <Spkapexcharts
                         chartOptions={graphOptions}
                         chartSeries={graphSeries}
-                        type="bar"
+                        type={graphOptions.chart.type}
                         width={"100%"}
                         height={315}
                       />
