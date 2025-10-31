@@ -6,56 +6,38 @@ const Spkapexcharts = dynamic(
     ),
   { ssr: false }
 );
+import moment from "moment";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { Fragment, useEffect, useState } from "react";
+import { Card, Col, Dropdown, Row } from "react-bootstrap";
 import Spkcardscomponent from "../../../../../shared/@spk-reusable-components/reusable-dashboards/spk-cards";
 import SpkCountrycard from "../../../../../shared/@spk-reusable-components/reusable-dashboards/spk-countrycard";
-import SpkActivityCard from "../../../../../shared/@spk-reusable-components/reusable-dashboards/spk-recentacticvecard";
 import SpkFlatpickr from "../../../../../shared/@spk-reusable-components/reusable-plugins/spk-flatpicker";
-import SpkDropdown from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
-import SpkButton from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-button";
-import SpkBreadcrumb from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-breadcrumb";
-import SpkBadge from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-badge";
 import SpkTablescomponent from "../../../../../shared/@spk-reusable-components/reusable-tables/tables-component";
+import SpkBadge from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-badge";
+import SpkBreadcrumb from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-breadcrumb";
+import SpkButton from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-button";
+import SpkDropdown from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 import {
   Cardsdata,
   Countrydata,
-  Graph2options,
-  Graph2series,
-  Graph3options,
-  Graph3series,
-  Graph4options,
-  Graph4series,
-  Graph5options,
-  Graph5series,
-  Graphoptions,
-  Graphseries,
-  Latestdata,
-  Overoptions,
-  Overseries,
   Recentorders,
-  Saleoptions,
-  Saleseries,
-  Sellingdata,
   Staticoptions,
   Staticseries,
-  activityData,
 } from "../../../../../shared/data/dashboard/salesdata";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import moment from "moment";
-import React, { Fragment, useEffect, useState } from "react";
-import { Card, Col, Dropdown, ProgressBar, Row } from "react-bootstrap";
 import Seo from "../../../../../shared/layouts-components/seo/seo";
 import {
-  loadSheet,
-  sheetCount,
-  parseDates,
-  filterByWeek,
-  orderSheet,
   extractValues,
-  filterSheet,
   filterByRange,
+  filterByWeek,
+  filterSheet,
+  loadSheet,
+  orderSheet,
+  parseDates,
+  sheetCount,
 } from "../../src/utils/excelUtils";
-import { createSeries, createOptions } from "../../src/utils/graphUtils";
+import { createOptions, createSeries } from "../../src/utils/graphUtils";
 
 const Sales = () => {
   const [sheetData, setSheetData] = useState(undefined);
