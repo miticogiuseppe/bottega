@@ -1,0 +1,33 @@
+{
+  "nome": "Imballatrice",
+  "fileStorico": "/files/STORICO_IMBALLATRICE.xlsx",
+  "appmerce": {
+    "ordini": 128,
+    "imballaggi": 2340,
+    "dataConsegna": "2025-10-27"
+  },
+  "graficoTS": {
+    "options": {
+      "chart": { "type": "bar" },
+      "xaxis": { "categories": ["Vetrate", "Alluminio", "PVC"] }
+    },
+    "series": [
+      {
+        "name": "Quantità",
+        "data": [120, 85, 60]
+      }
+    ]
+  },
+  "graficoMacchina": {
+    "options": {
+      "chart": { "type": "bar" },
+      "xaxis": { "categories": ["Default", "Pergola"] }
+    },
+    "series": [
+      {
+        "name": "Produzione",
+        "data": [150, 90]
+      }
+    ]
+  }
+}

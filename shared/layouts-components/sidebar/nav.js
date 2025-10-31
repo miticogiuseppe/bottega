@@ -1,5 +1,3 @@
-import { read } from "xlsx";
-
 const Dashboardicon = (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -136,7 +134,7 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         path: "/pages/empty",
-        ready: true,
+        ready: false,
       },
     ],
   },
@@ -328,19 +326,30 @@ export const MENUITEMS = [
   //   selected: false,
   //   dirchange: false,
   // },
+
   {
+    // Pagine
     icon: Pagesicon,
     title: "Pages",
     type: "sub",
     active: false,
     children: [
       {
-        path: "/pages/empty",
+        path: "/",
         type: "link",
         active: false,
         selected: false,
         title: "Empty",
         ready: false,
+      },
+
+      {
+        path: "/dashboard/macchine/imballatricetest",
+        type: "link",
+        active: false,
+        selected: false,
+        title: "Imballatrice",
+        ready: true,
       },
 
       {
@@ -360,13 +369,14 @@ export const MENUITEMS = [
         title: "Profilo",
         ready: true,
       },
-      // {
-      //   path: "/pages/profile",
-      //   type: "link",
-      //   active: false,
-      //   selected: false,
-      //   title: "Profile",
-      // },
+      {
+        path: "/pages/profile",
+        type: "link",
+        active: false,
+        selected: false,
+        title: "Profile",
+        ready: false,
+      },
       {
         path: "/pages/profile-settings",
         type: "link",
