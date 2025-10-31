@@ -3,12 +3,15 @@ import React, { Fragment } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import Seo from "../../../../../../shared/layouts-components/seo/seo";
 import Pageheader from "../../../../../../shared/layouts-components/page-header/pageheader";
+import Spkcardscomponent from "../../../../../../shared/@spk-reusable-components/reusable-dashboards/spk-cards";
+import { Cardsdata } from "../../../../../../shared/data/dashboard/salesdata";
 
 import MacchinaDashboard from "@/app/components/MacchinaDashboard";
 
 const imballatriceData = {
   nome: "Imballatrice",
   fileStorico: "/files/STORICO_IMBALLATRICE.xlsx",
+  fileAppmerce: "/files/APPMERCE_IMBALLATRICE.xlsx",
   appmerce: {
     ordini: 128,
     imballaggi: 2340,
@@ -49,16 +52,13 @@ export default function PaginaImballatrice() {
         title="Macchine"
         currentpage="Imballatrice"
         activepage="Imballatrice"
+        showActions={false}
       />
 
       {/* Contenuto */}
       <Row>
-        <Col xl={12}>
-          <Card className="custom-card">
-            <Card.Body>
-              <MacchinaDashboard {...imballatriceData} />
-            </Card.Body>
-          </Card>
+        <Col xxl={12}>
+          <MacchinaDashboard {...imballatriceData} />
         </Col>
       </Row>
     </Fragment>

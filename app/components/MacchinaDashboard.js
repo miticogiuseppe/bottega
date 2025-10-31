@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
+import { Row, Col, Card } from "react-bootstrap";
 import dynamic from "next/dynamic";
-import { Container, Row, Col, Card } from "react-bootstrap";
 import SpkDropdown from "../../shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 import Dropdown from "react-bootstrap/Dropdown";
 
@@ -17,20 +17,15 @@ const MacchinaDashboard = ({
   nome,
   fileStorico,
   appmerce,
+  fileAppmerce,
   graficoTS,
   graficoMacchina,
 }) => {
   return (
-    <Container fluid>
-      <Row className="mb-4">
-        <Col>
-          <h2 className="fw-bold">{nome}</h2>
-        </Col>
-      </Row>
-
-      <Row className="mb-4">
-        <Col xl={4}>
-          <Card className="custom-card">
+    <>
+      <Row className="mb-4 align-items-stretch">
+        <Col xl={4} className="d-flex">
+          <Card className="custom-card w-100 h-100">
             <Card.Header>
               <Card.Title>Storico</Card.Title>
             </Card.Header>
@@ -39,22 +34,34 @@ const MacchinaDashboard = ({
                 <a
                   href={fileStorico}
                   download
-                  className="btn btn-primary btn-sm"
+                  className="btn btn-primary btn-sm me-2"
                 >
-                  Scarica STORICO.xlsx
+                  Scarica STORICO
+                </a>
+                <a
+                  href={fileAppmerce}
+                  download
+                  className="btn btn-secondary btn-sm"
+                >
+                  Scarica APPMERCE
                 </a>
               </p>
               <ul className="list-unstyled">
-                <li>Ordini ricevuti: {appmerce.ordini}</li>
-                <li>Imballaggi previsti: {appmerce.imballaggi}</li>
-                <li>Ultima consegna: {appmerce.dataConsegna}</li>
+                <li>
+                  <strong>Ordini ricevuti:</strong> {appmerce.ordini}
+                </li>
+                <li>
+                  <strong>Imballaggi previsti:</strong> {appmerce.imballaggi}
+                </li>
+                <li>
+                  <strong>Ultima consegna:</strong> {appmerce.dataConsegna}
+                </li>
               </ul>
             </Card.Body>
           </Card>
         </Col>
-
         <Col xl={8}>
-          <Card className="custom-card">
+          <Card className="custom-card h-100">
             <Card.Header className="justify-content-between">
               <Card.Title>TS Azienda</Card.Title>
               <SpkDropdown
@@ -81,7 +88,7 @@ const MacchinaDashboard = ({
       </Row>
 
       <Row>
-        <Col xl={12}>
+        <Col xl={8}>
           <Card className="custom-card">
             <Card.Header className="justify-content-between">
               <Card.Title>Produzione {nome}</Card.Title>
@@ -107,7 +114,7 @@ const MacchinaDashboard = ({
           </Card>
         </Col>
       </Row>
-    </Container>
+    </>
   );
 };
 
