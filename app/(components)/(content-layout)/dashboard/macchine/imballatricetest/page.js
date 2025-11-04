@@ -8,7 +8,7 @@ import { Cardsdata } from "../../../../../../shared/data/dashboard/salesdata";
 
 import MacchinaDashboard from "@/app/components/MacchinaDashboard";
 
-const imballatriceData = {
+const imballatricetest = {
   nome: "Imballatrice",
   fileStorico: "/files/STORICO_IMBALLATRICE.xlsx",
   fileAppmerce: "/files/APPMERCE_IMBALLATRICE.xlsx",
@@ -58,7 +58,7 @@ export default function PaginaImballatrice() {
       {/* Contenuto */}
       <Row>
         <Col xxl={12}>
-          <MacchinaDashboard {...imballatriceData} />
+          <MacchinaDashboard {...imballatricetest} />
         </Col>
       </Row>
     </Fragment>
