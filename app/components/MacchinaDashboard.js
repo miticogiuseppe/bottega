@@ -1,9 +1,10 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Row, Col, Card } from "react-bootstrap";
 import dynamic from "next/dynamic";
 import SpkDropdown from "../../shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 import Dropdown from "react-bootstrap/Dropdown";
+import dayjs from "dayjs";
 
 const Spkapexcharts = dynamic(
   () =>
@@ -13,6 +14,32 @@ const Spkapexcharts = dynamic(
   { ssr: false }
 );
 
+//Estrai categorie dinamiche dall'array filtrato
+const estraiCategorie = (serie) => {
+  const punti = serie[0]?.data || [];
+  return punti.map((p) => p.x);
+};
+
+//Filtra i dati in base al periodo selezionato
+const filtraSerie = (serie, periodo) => {
+  const oggi = dayjs();
+  const inizio = {
+    settimana: oggi.subtract(7, "day"),
+    mese: oggi.subtract(1, "month"),
+    anno: oggi.subtract(1, "year"),
+  }[periodo];
+
+  return [
+    {
+      ...serie[0],
+      data: serie[0].data.filter((p) => {
+        const d = dayjs(p.date);
+        return d.isAfter(inizio) && d.isBefore(oggi.add(1, "day"));
+      }),
+    },
+  ];
+};
+
 const MacchinaDashboard = ({
   nome,
   fileStorico,
@@ -21,6 +48,15 @@ const MacchinaDashboard = ({
   graficoTS,
   graficoMacchina,
 }) => {
+  const [periodoTS, setPeriodoTS] = useState("mese");
+  const [periodoMacchina, setPeriodoMacchina] = useState("mese");
+
+  const serieTSFiltrata = filtraSerie(graficoTS.series, periodoTS);
+  const serieMacchinaFiltrata = filtraSerie(
+    graficoMacchina.series,
+    periodoMacchina
+  );
+
   return (
     <>
       <Row className="mb-4 align-items-stretch">
@@ -60,6 +96,7 @@ const MacchinaDashboard = ({
             </Card.Body>
           </Card>
         </Col>
+
         <Col xl={8}>
           <Card className="custom-card h-100">
             <Card.Header className="justify-content-between">
@@ -69,15 +106,31 @@ const MacchinaDashboard = ({
                 Customtoggleclass="btn btn-sm btn-light text-muted"
                 Toggletext="Periodo"
               >
-                <Dropdown.Item href="#!">Questa settimana</Dropdown.Item>
-                <Dropdown.Item href="#!">Ultimo mese</Dropdown.Item>
-                <Dropdown.Item href="#!">Anno corrente</Dropdown.Item>
+                <Dropdown.Item onClick={() => setPeriodoTS("settimana")}>
+                  Questa settimana
+                </Dropdown.Item>
+                <Dropdown.Item onClick={() => setPeriodoTS("mese")}>
+                  Ultimo mese
+                </Dropdown.Item>
+                <Dropdown.Item onClick={() => setPeriodoTS("anno")}>
+                  Anno corrente
+                </Dropdown.Item>
               </SpkDropdown>
             </Card.Header>
             <Card.Body>
+              <p className="text-muted mb-2">
+                Visualizzazione: {periodoTS} ({serieTSFiltrata[0].data.length}{" "}
+                dati)
+              </p>
               <Spkapexcharts
-                chartOptions={graficoTS.options}
-                chartSeries={graficoTS.series}
+                chartOptions={{
+                  ...graficoTS.options,
+                  xaxis: {
+                    ...graficoTS.options.xaxis,
+                    categories: estraiCategorie(serieTSFiltrata),
+                  },
+                }}
+                chartSeries={serieTSFiltrata}
                 type={graficoTS.options.chart.type}
                 width="100%"
                 height={315}
@@ -97,15 +150,31 @@ const MacchinaDashboard = ({
                 Customtoggleclass="btn btn-sm btn-light text-muted"
                 Toggletext="Periodo"
               >
-                <Dropdown.Item href="#!">Questa settimana</Dropdown.Item>
-                <Dropdown.Item href="#!">Ultimo mese</Dropdown.Item>
-                <Dropdown.Item href="#!">Anno corrente</Dropdown.Item>
+                <Dropdown.Item onClick={() => setPeriodoMacchina("settimana")}>
+                  Questa settimana
+                </Dropdown.Item>
+                <Dropdown.Item onClick={() => setPeriodoMacchina("mese")}>
+                  Ultimo mese
+                </Dropdown.Item>
+                <Dropdown.Item onClick={() => setPeriodoMacchina("anno")}>
+                  Anno corrente
+                </Dropdown.Item>
               </SpkDropdown>
             </Card.Header>
             <Card.Body>
+              <p className="text-muted mb-2">
+                Visualizzazione: {periodoMacchina} (
+                {serieMacchinaFiltrata[0].data.length} dati)
+              </p>
               <Spkapexcharts
-                chartOptions={graficoMacchina.options}
-                chartSeries={graficoMacchina.series}
+                chartOptions={{
+                  ...graficoMacchina.options,
+                  xaxis: {
+                    ...graficoMacchina.options.xaxis,
+                    categories: estraiCategorie(serieMacchinaFiltrata),
+                  },
+                }}
+                chartSeries={serieMacchinaFiltrata}
                 type={graficoMacchina.options.chart.type}
                 width="100%"
                 height={315}

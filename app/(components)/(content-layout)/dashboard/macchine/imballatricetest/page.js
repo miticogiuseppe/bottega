@@ -19,7 +19,7 @@ const imballatricetest = {
   graficoTS: {
     options: {
       chart: { type: "bar" },
-      xaxis: { categories: ["Vetrate", "Alluminio", "PVC"] },
+      xaxis: {}, // ← le categorie verranno generate dinamicamente
     },
     series: [
       {
@@ -28,6 +28,7 @@ const imballatricetest = {
           { x: "Vetrate", y: 120, date: "2025-10-01" },
           { x: "Alluminio", y: 85, date: "2025-10-15" },
           { x: "PVC", y: 60, date: "2025-10-27" },
+          { x: "Legno", y: 40, date: "2025-11-03" },
         ],
       },
     ],
@@ -35,7 +36,7 @@ const imballatricetest = {
   graficoMacchina: {
     options: {
       chart: { type: "bar" },
-      xaxis: { categories: ["Default", "Pergola"] },
+      xaxis: {},
     },
     series: [
       {
@@ -43,6 +44,7 @@ const imballatricetest = {
         data: [
           { x: "Default", y: 150, date: "2025-10-10" },
           { x: "Pergola", y: 90, date: "2025-10-25" },
+          { x: "Tenda", y: 40, date: "2025-11-03" },
         ],
       },
     ],
