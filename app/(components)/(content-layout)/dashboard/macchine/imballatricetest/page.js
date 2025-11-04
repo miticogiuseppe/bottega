@@ -7,11 +7,10 @@ import Spkcardscomponent from "../../../../../../shared/@spk-reusable-components
 import { Cardsdata } from "../../../../../../shared/data/dashboard/salesdata";
 
 import MacchinaDashboard from "@/app/components/MacchinaDashboard";
-
 const imballatricetest = {
   nome: "Imballatrice",
-  fileStorico: "/files/STORICO_IMBALLATRICE.xlsx",
-  fileAppmerce: "/files/APPMERCE_IMBALLATRICE.xlsx",
+  fileStorico: "/data/STORICO_IMBALLATRICE.zip",
+  fileAppmerce: "/data/APPMERCE-000.xlsx",
   appmerce: {
     ordini: 128,
     imballaggi: 2340,
@@ -25,7 +24,11 @@ const imballatricetest = {
     series: [
       {
         name: "Quantità",
-        data: [120, 85, 60],
+        data: [
+          { x: "Vetrate", y: 120, date: "2025-10-01" },
+          { x: "Alluminio", y: 85, date: "2025-10-15" },
+          { x: "PVC", y: 60, date: "2025-10-27" },
+        ],
       },
     ],
   },
@@ -37,7 +40,10 @@ const imballatricetest = {
     series: [
       {
         name: "Produzione",
-        data: [150, 90],
+        data: [
+          { x: "Default", y: 150, date: "2025-10-10" },
+          { x: "Pergola", y: 90, date: "2025-10-25" },
+        ],
       },
     ],
   },
