@@ -367,7 +367,7 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         title: "Profilo",
-        ready: true,
+        ready: false,
       },
       {
         path: "/pages/profile",
