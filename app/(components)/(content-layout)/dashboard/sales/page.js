@@ -47,6 +47,7 @@ const Sales = () => {
   const [selectedAgent, setSelectedAgent] = useState(undefined);
   const [startDate, setStartDate] = useState(undefined);
   const [pickerDate, setPickerDate] = useState(undefined);
+  const [productCount, setProductCount] = useState(0);
 
   const handleDateChange = (date) => {
     setPickerDate(date);
@@ -102,6 +103,15 @@ const Sales = () => {
     setGraphSeries(series);
     setGraphOptions(options);
   }, [sheetData, selectedAgent, startDate]);
+
+  useEffect(() => {
+    if (!sheetData) return;
+    const total = sheetData.reduce((acc, row) => {
+      const value = parseFloat(row["Qta da ev"]);
+      return acc + (isNaN(value) ? 0 : value);
+    }, 0);
+    setProductCount(Math.round(total));
+  }, [sheetData]);
 
   return (
     <Fragment>
@@ -176,6 +186,25 @@ const Sales = () => {
       <Row>
         <Col xl={8}>
           <Row>
+            <Col xxl={3} xl={6} key={Math.random()}>
+              <Spkcardscomponent
+                cardClass="overflow-hidden main-content-card"
+                headingClass="d-block mb-1"
+                mainClass="d-flex align-items-start justify-content-between mb-2"
+                Icon={true}
+                iconClass="ti ti-shopping-cart"
+                card={{
+                  id: 1,
+                  title: "Total Products",
+                  count: productCount,
+                  iconClass: "ti ti-shopping-cart",
+                  backgroundColor: "primary",
+                  color: "success",
+                }}
+                badgeClass="md rounded-pill"
+                dataClass="mb-0"
+              />
+            </Col>
             {Cardsdata.map((idx) => (
               <Col xxl={3} xl={6} key={Math.random()}>
                 <Spkcardscomponent

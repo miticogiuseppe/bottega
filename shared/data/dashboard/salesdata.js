@@ -614,35 +614,35 @@ export const Cardsdata = [
     id: 1,
     title: "Total Products",
     count: "854",
-    inc: "Increased By ",
-    percentageChange: "2.56%",
+   // inc: "Increased By ",
+    // percentageChange: "2.56%",
     iconClass: "ti ti-shopping-cart",
-    icon: "ti ti-arrow-narrow-up",
+    // icon: "ti ti-arrow-narrow-up",
     backgroundColor: "primary",
     color: "success",
   },
-  {
-    id: 2,
-    title: "Total Users",
-    count: "31,876",
-    inc: "Increased By ",
-    percentageChange: "0.34%",
-    iconClass: "ti ti-users",
-    icon: "ti ti-arrow-narrow-up",
-    backgroundColor: "primary1",
-    color: "success",
-  },
-  {
-    id: 3,
-    title: "Total Revenue",
-    count: "$34,241",
-    inc: "Increased By ",
-    percentageChange: "7.66%",
-    iconClass: "ti ti-currency-dollar",
-    icon: "ti ti-arrow-narrow-up",
-    backgroundColor: "primary2",
-    color: "success",
-  },
+  // {
+  //   id: 2,
+  //   title: "Total Users",
+  //   count: "31,876",
+  //   inc: "Increased By ",
+  //   percentageChange: "0.34%",
+  //   iconClass: "ti ti-users",
+  //   icon: "ti ti-arrow-narrow-up",
+  //   backgroundColor: "primary1",
+  //   color: "success",
+  // },
+  // {
+  //   id: 3,
+  //   title: "Total Revenue",
+  //   count: "$34,241",
+  //   inc: "Increased By ",
+  //   percentageChange: "7.66%",
+  //   iconClass: "ti ti-currency-dollar",
+  //   icon: "ti ti-arrow-narrow-up",
+  //   backgroundColor: "primary2",
+  //   color: "success",
+  // },
   {
     id: 4,
     title: "Total Sales",
@@ -822,35 +822,35 @@ export const Countrydata = [
 
 //Recent Activity
 
-export const activityData = [
-  {
-    activityUser: "John Doe",
-    activityTime: "12 Hrs",
-    activityDesc:
-      "Updated the product description for <span class='text-primary fw-medium'>Widget X</span>.",
-  },
-  {
-    activityUser: "Jane Smith",
-    activityTime: "4:32pm",
-    activityDesc:
-      "added a <span class='fw-medium text-dark'>new user</span> with username <span class='fw-medium text-primary1'>janesmith89.</span>",
-  },
-  {
-    activityUser: "Michael Brown",
-    activityTime: "11:45am",
-    activityDesc:
-      "Changed the status of order <a href='javascript:void(0);' class='fw-medium text-dark text-decoration-underline'>#12345</a> to <span class='fw-medium text-primary2'>Shipped.</span>",
-  },
-  {
-    activityUser: "David Wilson",
-    activityTime: "9:27am",
-    activityDesc:
-      "added <span class='fw-medium text-primary3'>John Smith</span> to academy group this day.",
-  },
-  {
-    activityUser: "Robert Jackson",
-    activityTime: "8:56pm",
-    activityDesc:
-      "added a comment to the task <span class='fw-medium text-secondary'>Update website layout.</span>",
-  },
-];
+// export const activityData = [
+//   {
+//     activityUser: "John Doe",
+//     activityTime: "12 Hrs",
+//     activityDesc:
+//       "Updated the product description for <span class='text-primary fw-medium'>Widget X</span>.",
+//   },
+//   {
+//     activityUser: "Jane Smith",
+//     activityTime: "4:32pm",
+//     activityDesc:
+//       "added a <span class='fw-medium text-dark'>new user</span> with username <span class='fw-medium text-primary1'>janesmith89.</span>",
+//   },
+//   {
+//     activityUser: "Michael Brown",
+//     activityTime: "11:45am",
+//     activityDesc:
+//       "Changed the status of order <a href='javascript:void(0);' class='fw-medium text-dark text-decoration-underline'>#12345</a> to <span class='fw-medium text-primary2'>Shipped.</span>",
+//   },
+//   {
+//     activityUser: "David Wilson",
+//     activityTime: "9:27am",
+//     activityDesc:
+//       "added <span class='fw-medium text-primary3'>John Smith</span> to academy group this day.",
+//   },
+//   {
+//     activityUser: "Robert Jackson",
+//     activityTime: "8:56pm",
+//     activityDesc:
+//       "added a comment to the task <span class='fw-medium text-secondary'>Update website layout.</span>",
+//   },
+// ];
