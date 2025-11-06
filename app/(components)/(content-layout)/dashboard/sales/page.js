@@ -186,7 +186,7 @@ const Sales = () => {
       <Row>
         <Col xl={8}>
           <Row>
-            <Col xxl={3} xl={6} key={Math.random()}>
+            <Col xxl={5} xl={6} key={Math.random()}>
               <Spkcardscomponent
                 cardClass="overflow-hidden main-content-card"
                 headingClass="d-block mb-1"
@@ -205,7 +205,10 @@ const Sales = () => {
                 dataClass="mb-0"
               />
             </Col>
-            {Cardsdata.map((idx) => (
+            {Cardsdata.filter(
+              (card) =>
+                card.title !== "Total Products" && card.title !== "Total Sales"
+            ).map((idx) => (
               <Col xxl={3} xl={6} key={Math.random()}>
                 <Spkcardscomponent
                   cardClass="overflow-hidden main-content-card"
@@ -248,7 +251,7 @@ const Sales = () => {
                 </Card.Body>
               </Card>
             </Col>
-            <Col xxl={4} xl={6}>
+            {/* <Col xxl={4} xl={6}>
               <Card className="custom-card overflow-hidden">
                 <Card.Header className="pb-0 justify-content-between">
                   <Card.Title>Order Statistics</Card.Title>
@@ -319,7 +322,7 @@ const Sales = () => {
                   </div>
                 </div>
               </Card>
-            </Col>
+            </Col> */}
           </Row>
         </Col>
         <Col xl={4}>
@@ -585,7 +588,7 @@ const Sales = () => {
       {/* <!-- End:: row-2 --> */}
 
       {/* <!-- Start:: row-3 --> */}
-      <Row>
+      {/* <Row>
         <Col xl={9}>
           <Card className="custom-card overflow-hidden">
             <Card.Header className="justify-content-between">
@@ -695,7 +698,7 @@ const Sales = () => {
             </Card.Body>
           </Card>
         </div>
-      </Row>
+      </Row> */}
       {/* <!-- End:: row-3 --> */}
     </Fragment>
   );

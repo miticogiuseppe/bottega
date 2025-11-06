@@ -614,7 +614,7 @@ export const Cardsdata = [
     id: 1,
     title: "Total Products",
     count: "854",
-   // inc: "Increased By ",
+    // inc: "Increased By ",
     // percentageChange: "2.56%",
     iconClass: "ti ti-shopping-cart",
     // icon: "ti ti-arrow-narrow-up",
