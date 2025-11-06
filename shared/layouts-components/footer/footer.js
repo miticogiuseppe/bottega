@@ -7,7 +7,7 @@ const Footer = () => {
     <Fragment>
       <footer className="footer mt-auto py-3 bg-white text-center">
         <div className="container">
-          <span className="text-muted"> Copral 4.0 – Powered by supplychainitalia </span>
+          <span className="text-muted"> Copral 4.0 – Powered by SupplychainItalia </span>
           
         </div>
       </footer>
