@@ -65,6 +65,7 @@ const Sales = () => {
   const [selectedAgent, setSelectedAgent] = useState(undefined);
   const [startDate, setStartDate] = useState(undefined);
   const [pickerDate, setPickerDate] = useState(undefined);
+  const [productCount, setProductCount] = useState(undefined);
 
   const handleDateChange = (date) => {
     setPickerDate(date);

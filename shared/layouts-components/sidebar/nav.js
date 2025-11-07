@@ -358,7 +358,7 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         title: "Amministrativa",
-        ready: true,
+        ready: false,
       },
 
       {
