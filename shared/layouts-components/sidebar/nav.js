@@ -344,7 +344,7 @@ export const MENUITEMS = [
       },
 
       {
-        path: "/dashboard/macchine/imballatricetest",
+        path: "/dashboard/macchine/Imballatrice",
         type: "link",
         active: false,
         selected: false,
