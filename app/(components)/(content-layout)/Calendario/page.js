@@ -16,13 +16,16 @@ export default function Home() {
 
   useEffect(() => {
     // Carica automaticamente il file Excel
-    console.log("sto caricando il file excel");
+    // console.log("sto caricando il file excel");
     const fetchOrders = async () => {
       const response = await fetch("/data/APPMERCE-000.xlsx");
       const blob = await response.blob();
       const newOrders = await loadOrdersFromExcel(blob);
 
-      // console.log("Ordini caricati da public/data/APPMERCE-000.xlsx", newOrders);
+      // console.log(
+      //   "Ordini caricati da public/data/APPMERCE-000.xlsx",
+      //   newOrders
+      // );
 
       setOrders(newOrders);
     };

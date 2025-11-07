@@ -7,10 +7,8 @@ const Footer = () => {
     <Fragment>
       <footer className="footer mt-auto py-3 bg-white text-center">
         <div className="container">
-          <span className="text-muted"> Copyright © <span id="year"> 2024 </span>
-            <Link href="#!" scroll={false} className="text-dark fw-medium">Xintra</Link>. Designed with <span className="bi bi-heart-fill text-danger"></span> by <Link href="#!" scroll={false}>
-              <span className="fw-medium text-primary">Spruko</span>
-            </Link> All rights reserved </span>
+          <span className="text-muted"> Copral 4.0 – Powered by SupplychainItalia </span>
+          
         </div>
       </footer>
     </Fragment>

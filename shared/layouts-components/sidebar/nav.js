@@ -124,7 +124,17 @@ export const MENUITEMS = [
         type: "link",
         active: false,
         selected: false,
-        title: "Sales",
+        title: "Generale",
+        ready: true,
+      },
+
+      {
+        title: "Dashboard 4.0",
+        type: "link",
+        active: false,
+        selected: false,
+        path: "/pages/empty",
+        ready: false,
       },
     ],
   },
@@ -212,6 +222,7 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         path: "/Calendario",
+        ready: true,
       },
     ],
   },
@@ -315,18 +326,39 @@ export const MENUITEMS = [
   //   selected: false,
   //   dirchange: false,
   // },
+
   {
+    // Pagine
     icon: Pagesicon,
     title: "Pages",
     type: "sub",
     active: false,
     children: [
       {
-        path: "/pages/empty",
+        path: "/",
         type: "link",
         active: false,
         selected: false,
         title: "Empty",
+        ready: false,
+      },
+
+      {
+        path: "/dashboard/macchine/imballatricetest",
+        type: "link",
+        active: false,
+        selected: false,
+        title: "Imballatrice",
+        ready: true,
+      },
+
+      {
+        path: "/pages/empty",
+        type: "link",
+        active: false,
+        selected: false,
+        title: "Amministrativa",
+        ready: false,
       },
 
       {
@@ -335,21 +367,48 @@ export const MENUITEMS = [
         active: false,
         selected: false,
         title: "Profilo",
+        ready: false,
       },
-      // {
-      //   path: "/pages/profile",
-      //   type: "link",
-      //   active: false,
-      //   selected: false,
-      //   title: "Profile",
-      // },
+      {
+        path: "/pages/profile",
+        type: "link",
+        active: false,
+        selected: false,
+        title: "Profile",
+        ready: false,
+      },
       {
         path: "/pages/profile-settings",
         type: "link",
         active: false,
         selected: false,
         title: "Profile Settings",
+        ready: false,
       },
     ],
   },
 ];
+
+// FLAG DEMO
+const isDemo = process.env.NEXT_PUBLIC_DEMO === "true";
+
+// FILTRO AUTOMATICO
+function filterMenu(items) {
+  return items
+    .map((item) => {
+      const newItem = { ...item };
+
+      if (newItem.children) {
+        newItem.children = filterMenu(newItem.children);
+      }
+
+      const isReady = newItem.ready !== undefined ? newItem.ready : true;
+
+      if (isDemo && !isReady) return null;
+      return newItem;
+    })
+    .filter(Boolean);
+}
+
+// EXPORT DEL MENU FILTRATO
+export const FILTERED_MENU = filterMenu(MENUITEMS);
