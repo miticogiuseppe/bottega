@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import moment from "moment";
 
-// 🔹 Importa le utility Excel e grafico (path relativi al tuo progetto)
+// Importa le utility Excel e grafico (path relativi al tuo progetto)
 import {
   loadSheet,
   sheetCount,
@@ -12,16 +12,13 @@ import {
   orderSheet,
   filterSheet,
   filterByRange,
-} from "../../../../app/dashboard/macchine/src/utils/excelUtils";
-import {
-  createSeries,
-  createOptions,
-} from "../../../../app/dashboard/macchine/src/utils/graphUtils";
+} from "@/shared/utils/excelUtils";
+import { createSeries, createOptions } from "@/shared/utils/graphUtils";
 
-// 🔹 Importa ApexCharts dal tuo reusable-plugins
+// Importa ApexCharts dal tuo reusable-plugins
 const Spkapexcharts = dynamic(
   () =>
-    import("../../@spk-reusable-components/reusable-plugins/spk-apexcharts"),
+    import("@/shared/@spk-reusable-components/reusable-plugins/spk-apexcharts"),
   { ssr: false }
 );
 

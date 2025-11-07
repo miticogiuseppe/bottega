@@ -54,8 +54,8 @@ import {
   extractValues,
   filterSheet,
   filterByRange,
-} from "../../src/utils/excelUtils";
-import { createSeries, createOptions } from "../../src/utils/graphUtils";
+} from "@/shared/utils/excelUtils";
+import { createSeries, createOptions } from "@/shared/utils/graphUtils";
 
 const Sales = () => {
   const [sheetData, setSheetData] = useState(undefined);

@@ -113,6 +113,16 @@ const extractValues = (data, col) => {
   );
 };
 
+const sumByKey = (jsonSheet, groupKey, valueKey) => {
+  const grouped = _.groupBy(jsonSheet, groupKey);
+  return _.map(grouped, (items, key) => {
+    return {
+      [groupKey]: key,
+      count: _.sumBy(items, (item) => Number(item[valueKey]) || 0),
+    };
+  });
+};
+
 export {
   loadOrdersFromExcel,
   loadSheet,
@@ -125,4 +135,5 @@ export {
   extractValues,
   filterSheet,
   filterByRange,
+  sumByKey,
 };

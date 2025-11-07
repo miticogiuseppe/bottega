@@ -4,7 +4,8 @@ import { Col, Row } from "react-bootstrap";
 import Seo from "../../../../../../shared/layouts-components/seo/seo";
 import Pageheader from "../../../../../../shared/layouts-components/page-header/pageheader";
 import MacchinaDashboard from "@/app/components/MacchinaDashboard";
-// import AppmerceChart from "../../../../../../shared/components/AppmerceChart";
+import AppmerceChart from "@/shared/components/AppmerceChart";
+import AppmerceChartByArticolo from "@/shared/components/AppmerceChartByArticolo";
 
 const imballatricetest = {
   nome: "Imballatrice",
@@ -19,18 +20,17 @@ const imballatricetest = {
   graficoTS: {
     options: {
       chart: { type: "bar" },
-      xaxis: {
-        categories: ["Alluminio", "PVC", "Legno", "Acciaio"],
-      },
+      xaxis: {},
     },
+
     series: [
       {
         name: "TS Azienda",
         data: [
-          { x: "Alluminio", y: 120, date: "2025-10-01" },
-          { x: "PVC", y: 95, date: "2025-10-10" },
-          { x: "Legno", y: 60, date: "2025-10-15" },
-          { x: "Acciaio", y: 80, date: "2025-10-20" },
+          { x: "Vetrate", y: 120, date: "2025-10-01" },
+          { x: "Alluminio", y: 85, date: "2025-10-15" },
+          { x: "PVC", y: 60, date: "2025-10-27" },
+          { x: "Legno", y: 40, date: "2025-11-04" },
         ],
       },
     ],
@@ -38,9 +38,7 @@ const imballatricetest = {
   graficoMacchina: {
     options: {
       chart: { type: "bar" },
-      xaxis: {
-        categories: ["Default", "Pergola", "Tenda"],
-      },
+      xaxis: {},
     },
     series: [
       {
@@ -74,12 +72,19 @@ export default function PaginaImballatrice() {
         </Col>
       </Row>
 
-      {/* 🔹 Grafico TS Azienda (Appmerce) */}
-      {/* <Row className="mt-4">
+      {/* Grafico TS Azienda (Appmerce) */}
+      <Row className="mt-4">
         <Col xl={6}>
           <AppmerceChart title="TS Azienda" />
         </Col>
-      </Row> */}
+        {/* <Col xl={6}>
+          <AppmerceChartByArticolo
+            file={imballatricetest.fileAppmerce}
+            startDate="2025-10-01"
+            endDate="2025-10-31"
+          />
+        </Col> */}
+      </Row>
     </Fragment>
   );
 }
