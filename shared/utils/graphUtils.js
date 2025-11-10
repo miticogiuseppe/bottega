@@ -162,7 +162,7 @@ const createSeries = (countArray) => {
     {
       name: "Counters",
       type: "column",
-      data: _.map(countArray, "conteggio"),
+      data: _.map(countArray, "count"),
     },
   ];
 };

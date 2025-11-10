@@ -65,9 +65,17 @@ export default function AppmerceChart({ title = "TS Azienda" }) {
       <div className="card-body">
         {graphSeries.length > 0 && graphOptions?.chart?.type ? (
           <Spkapexcharts
-            chartOptions={graphOptions}
-            chartSeries={graphSeries}
-            type={graphOptions.chart.type}
+            chartOptions={{
+              chart: { type: "bar" },
+              xaxis: { categories: ["Vetrataa", "Alluminio", "PVC"] },
+            }}
+            chartSeries={[
+              {
+                name: "Quantità",
+                data: [120, 85, 60],
+              },
+            ]}
+            type="bar"
             width={"100%"}
             height={315}
           />

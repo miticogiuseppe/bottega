@@ -77,13 +77,13 @@ export default function PaginaImballatrice() {
         <Col xl={6}>
           <AppmerceChart title="TS Azienda" />
         </Col>
-        {/* <Col xl={6}>
+        <Col xl={6}>
           <AppmerceChartByArticolo
             file={imballatricetest.fileAppmerce}
             startDate="2025-10-01"
             endDate="2025-10-31"
           />
-        </Col> */}
+        </Col>
       </Row>
     </Fragment>
   );

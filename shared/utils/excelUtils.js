@@ -32,6 +32,15 @@ const loadSheet = async (file, sheetName) => {
   const sheet = workbook.Sheets[sheetName];
   return XLSX.utils.sheet_to_json(sheet);
 };
+
+const loadSheetFromUrl = async (url, sheetName) => {
+  const response = await fetch(url);
+  const data = await response.arrayBuffer();
+  const workbook = XLSX.read(data, { type: "array" });
+  const sheet = workbook.Sheets[sheetName];
+  return XLSX.utils.sheet_to_json(sheet);
+};
+
 const parseDates = (jsonSheet, dateCols) => {
   let result = [];
   for (let row of jsonSheet)
@@ -56,7 +65,7 @@ const sheetCount = (jsonSheet, keyCols) => {
     let obj = {};
     for (let i = 0; i < keyCols.length; i++)
       obj[keyCols[i]] = items[0][keyCols[i]];
-    obj.conteggio = items.length;
+    obj.count = items.length;
     return obj;
   });
   return risultati;
@@ -136,4 +145,5 @@ export {
   filterSheet,
   filterByRange,
   sumByKey,
+  loadSheetFromUrl,
 };
