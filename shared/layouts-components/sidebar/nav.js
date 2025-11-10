@@ -120,7 +120,7 @@ export const MENUITEMS = [
     active: false,
     children: [
       {
-        path: "/dashboard/copral/sales",
+        path: "/dashboard/copral/generale",
         type: "link",
         active: false,
         selected: false,
