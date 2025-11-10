@@ -7,8 +7,8 @@ import {
   filterByRange,
   sumByKey,
   parseDates,
-} from "@/shared/utils/excelUtils";
-import { createSeries, createOptions } from "@/shared/utils/graphUtils";
+} from "@/utils/excelUtils";
+import { createSeries, createOptions } from "@/utils/graphUtils";
 
 const Chart = dynamic(
   () =>

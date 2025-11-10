@@ -1,11 +1,11 @@
 "use client";
 import React, { Fragment } from "react";
 import { Col, Row } from "react-bootstrap";
-import Seo from "../../../../../../shared/layouts-components/seo/seo";
-import Pageheader from "../../../../../../shared/layouts-components/page-header/pageheader";
-import MacchinaDashboard from "@/app/components/MacchinaDashboard";
-import AppmerceChart from "@/shared/components/AppmerceChart";
-import AppmerceChartByArticolo from "@/shared/components/AppmerceChartByArticolo";
+import Seo from "@/shared/layouts-components/seo/seo";
+import Pageheader from "@/shared/layouts-components/page-header/pageheader";
+import MacchinaDashboard from "@/components/MacchinaDashboard";
+import AppmerceChart from "@/components/AppmerceChart";
+import AppmerceChartByArticolo from "@/components/AppmerceChartByArticolo";
 
 const imballatricetest = {
   nome: "Imballatrice",

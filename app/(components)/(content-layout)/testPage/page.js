@@ -2,19 +2,19 @@
 const Spkapexcharts = dynamic(
   () =>
     import(
-      "../../../../../shared/@spk-reusable-components/reusable-plugins/spk-apexcharts"
+      "../../../../shared/@spk-reusable-components/reusable-plugins/spk-apexcharts"
     ),
   { ssr: false }
 );
-import Spkcardscomponent from "../../../../../shared/@spk-reusable-components/reusable-dashboards/spk-cards";
-import SpkCountrycard from "../../../../../shared/@spk-reusable-components/reusable-dashboards/spk-countrycard";
-import SpkActivityCard from "../../../../../shared/@spk-reusable-components/reusable-dashboards/spk-recentacticvecard";
-import SpkFlatpickr from "../../../../../shared/@spk-reusable-components/reusable-plugins/spk-flatpicker";
-import SpkDropdown from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
-import SpkButton from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-button";
-import SpkBreadcrumb from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-breadcrumb";
-import SpkBadge from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-badge";
-import SpkTablescomponent from "../../../../../shared/@spk-reusable-components/reusable-tables/tables-component";
+import Spkcardscomponent from "../../../../shared/@spk-reusable-components/reusable-dashboards/spk-cards";
+import SpkCountrycard from "../../../../shared/@spk-reusable-components/reusable-dashboards/spk-countrycard";
+import SpkActivityCard from "../../../../shared/@spk-reusable-components/reusable-dashboards/spk-recentacticvecard";
+import SpkFlatpickr from "../../../../shared/@spk-reusable-components/reusable-plugins/spk-flatpicker";
+import SpkDropdown from "../../../../shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
+import SpkButton from "../../../../shared/@spk-reusable-components/reusable-uielements/spk-button";
+import SpkBreadcrumb from "../../../../shared/@spk-reusable-components/reusable-uielements/spk-breadcrumb";
+import SpkBadge from "../../../../shared/@spk-reusable-components/reusable-uielements/spk-badge";
+import SpkTablescomponent from "../../../../shared/@spk-reusable-components/reusable-tables/tables-component";
 import {
   Cardsdata,
   Countrydata,
@@ -38,13 +38,13 @@ import {
   Staticoptions,
   Staticseries,
   activityData,
-} from "../../../../../shared/data/dashboard/salesdata";
+} from "../../../../shared/data/dashboard/salesdata";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import moment from "moment";
 import React, { Fragment, useEffect, useState } from "react";
 import { Card, Col, Dropdown, ProgressBar, Row } from "react-bootstrap";
-import Seo from "../../../../../shared/layouts-components/seo/seo";
+import Seo from "../../../../shared/layouts-components/seo/seo";
 import {
   loadSheet,
   sheetCount,
@@ -54,8 +54,8 @@ import {
   extractValues,
   filterSheet,
   filterByRange,
-} from "@/shared/utils/excelUtils";
-import { createSeries, createOptions } from "@/shared/utils/graphUtils";
+} from "@/utils/excelUtils";
+import { createSeries, createOptions } from "@/utils/graphUtils";
 
 const Sales = () => {
   const [sheetData, setSheetData] = useState(undefined);

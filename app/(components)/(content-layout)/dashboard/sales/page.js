@@ -36,8 +36,8 @@ import {
   orderSheet,
   parseDates,
   sheetCount,
-} from "@/shared/utils/excelUtils";
-import { createOptions, createSeries } from "@/shared/utils/graphUtils";
+} from "@/utils/excelUtils";
+import { createOptions, createSeries } from "@/utils/graphUtils";
 
 const Sales = () => {
   const [sheetData, setSheetData] = useState(undefined);

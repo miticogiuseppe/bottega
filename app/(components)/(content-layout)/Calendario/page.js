@@ -1,7 +1,7 @@
 "use client";
-import OrderCalendar from "../src/components/OrderCalendar";
+import OrderCalendar from "../../../../components/OrderCalendar";
 import { useEffect, useState } from "react";
-import { loadOrdersFromExcel } from "@/shared/utils/excelUtils";
+import { loadOrdersFromExcel } from "@/utils/excelUtils";
 
 export default function Home() {
   const [orders, setOrders] = useState([]);

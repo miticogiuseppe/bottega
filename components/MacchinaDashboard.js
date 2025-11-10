@@ -2,14 +2,14 @@
 import React, { useState } from "react";
 import { Row, Col, Card } from "react-bootstrap";
 import dynamic from "next/dynamic";
-import SpkDropdown from "../../shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
+import SpkDropdown from "../shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 import Dropdown from "react-bootstrap/Dropdown";
 import dayjs from "dayjs";
 
 const Spkapexcharts = dynamic(
   () =>
     import(
-      "../../shared/@spk-reusable-components/reusable-plugins/spk-apexcharts"
+      "../shared/@spk-reusable-components/reusable-plugins/spk-apexcharts"
     ),
   { ssr: false }
 );

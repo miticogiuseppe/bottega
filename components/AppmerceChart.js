@@ -12,8 +12,8 @@ import {
   orderSheet,
   filterSheet,
   filterByRange,
-} from "@/shared/utils/excelUtils";
-import { createSeries, createOptions } from "@/shared/utils/graphUtils";
+} from "@/utils/excelUtils";
+import { createSeries, createOptions } from "@/utils/graphUtils";
 
 // Importa ApexCharts dal tuo reusable-plugins
 const Spkapexcharts = dynamic(

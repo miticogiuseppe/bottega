@@ -3,10 +3,10 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import OrderListModal from "./OrderListModal";
 import "./OrderCalendar.css";
-import Pageheader from "../../../../../shared/layouts-components/page-header/pageheader";
+import Pageheader from "../shared/layouts-components/page-header/pageheader";
 import { Card, CardBody, Col, Row } from "react-bootstrap";
 import React, { Fragment } from "react";
-import Seo from "../../../../../shared/layouts-components/seo/seo";
+import Seo from "../shared/layouts-components/seo/seo";
 import listPlugin from "@fullcalendar/list";
 import timeGridPlugin from "@fullcalendar/timegrid";
 

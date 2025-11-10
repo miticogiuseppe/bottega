@@ -1,66 +1,19 @@
-// "use client";
-// import Pageheader from "../../../../../shared/layouts-components/page-header/pageheader";
-// import React, { Fragment } from "react";
-// import { Card, Col, Row } from "react-bootstrap";
-// import Seo from "../../../../../shared/layouts-components/seo/seo";
-
-// const ProfiloUtente = () => {
-//   return (
-//     <Fragment>
-//       {/* <!-- Page Header --> */}
-//       <Seo title="Profilo Utente" />
-//       <Pageheader title="Profilo" currentpage="Profilo" activepage="Profilo" />
-//       {/* <!-- Page Header Close --> */}
-
-//       <Row>
-//         <Col xl={6} lg={6} md={12} sm={12} xs={12}>
-//           <Card className="custom-card">
-//             <Card.Body>
-//               <div className="text-center">
-//                 <img
-//                   src="/assets/images/faces/1600w-NcNNn8264AU.webp"
-//                   alt="Foto Profilo"
-//                   className="rounded-circle mb-3"
-//                   width={100}
-//                   height={100}
-//                 />
-//                 <h4>Mario Rossi</h4>
-//                 <p className="text-muted">Sviluppatore Web</p>
-//                 <p>Email: mario.rossi@example.com</p>
-//                 <p>
-//                   Appassionato di tecnologia, sviluppo software e interfacce
-//                   moderne.
-//                 </p>
-//               </div>
-//             </Card.Body>
-//           </Card>
-//         </Col>
-//       </Row>
-//     </Fragment>
-//   );
-// };
-
-// export default ProfiloUtente;
-
 "use client";
-import SpkProfilefriendscard from "../../../../../shared/@spk-reusable-components/reusable-pages/spkprofilefriendscard";
-import SpkBadge from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-badge";
-import SpkButton from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-button";
-import {
-  Profilecarddata,
-  Profilelist,
-} from "../../../../../shared/data/pages/profiledata";
-import Pageheader from "../../../../../shared/layouts-components/page-header/pageheader";
+import SpkProfilefriendscard from "@/shared/@spk-reusable-components/reusable-pages/spkprofilefriendscard";
+import SpkBadge from "@/shared/@spk-reusable-components/reusable-uielements/spk-badge";
+import SpkButton from "@/shared/@spk-reusable-components/reusable-uielements/spk-button";
+import { Profilecarddata, Profilelist } from "@/shared/data/pages/profiledata";
+import Pageheader from "@/shared/layouts-components/page-header/pageheader";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import React, { Fragment, useState } from "react";
 import { Card, Col, Dropdown, Form, Nav, Row, Tab } from "react-bootstrap";
-import Seo from "../../../../../shared/layouts-components/seo/seo";
+import Seo from "@/shared/layouts-components/seo/seo";
 const CreatableSelect = dynamic(() => import("react-select/creatable"), {
   ssr: false,
 });
 
-const Profile = () => {
+const ProfileComponent = () => {
   const components = {
     DropdownIndicator: null,
   };
@@ -144,7 +97,7 @@ const Profile = () => {
                         </p>
                       </div>
                     </Card.Body>
-                    {/* <div className="d-flex mb-0 flex-wrap gap-3 p-3 border-bottom border-block-end-dashed">
+                    <div className="d-flex mb-0 flex-wrap gap-3 p-3 border-bottom border-block-end-dashed">
                       <div className="border-dashed rounded text-center flex-fill">
                         <div className="main-card-icon mb-2 primary1">
                           <div className="avatar avatar-sm bg-primary1">
@@ -167,7 +120,7 @@ const Profile = () => {
                           <p className="mb-1 text-muted">Following</p>
                         </div>
                       </div>
-                    </div> */}
+                    </div>
                     <div className="p-3 pb-1 d-flex flex-wrap justify-content-between">
                       <div className="fw-medium fs-15 text-primary1">
                         Basic Info :
@@ -223,7 +176,7 @@ const Profile = () => {
                         </li>
                       </ul>
                     </Card.Body>
-                    {/* <div className="p-3 pb-1 d-flex flex-wrap justify-content-between">
+                    <div className="p-3 pb-1 d-flex flex-wrap justify-content-between">
                       <div className="fw-medium fs-15 text-primary1">
                         Followers :
                       </div>
@@ -340,7 +293,7 @@ const Profile = () => {
                           </div>
                         </li>
                       </ul>
-                    </Card.Body> */}
+                    </Card.Body>
                   </Card>
                 </Col>
                 <Col xl={9}>
@@ -382,21 +335,51 @@ const Profile = () => {
                               Edit Profile
                             </Nav.Link>
                           </Nav.Item>
-                          {/* <Nav.Item className="" role="presentation">
-                                                        <Nav.Link eventKey="timeline" className="w-100 text-start" id="timeline-tab" data-bs-toggle="tab"
-                                                            data-bs-target="#timeline-tab-pane" type="button" role="tab"
-                                                            aria-controls="timeline-tab-pane" aria-selected="false">Timeline</Nav.Link>
-                                                    </Nav.Item>
-                                                    <Nav.Item className="" role="presentation">
-                                                        <Nav.Link eventKey="gallery" className="w-100 text-start" id="gallery-tab" data-bs-toggle="tab"
-                                                            data-bs-target="#gallery-tab-pane" type="button" role="tab"
-                                                            aria-controls="gallery-tab-pane" aria-selected="false">Gallery</Nav.Link>
-                                                    </Nav.Item>
-                                                    <Nav.Item className="" role="presentation">
-                                                        <Nav.Link eventKey="friends" className="w-100 text-start" id="friends-tab" data-bs-toggle="tab"
-                                                            data-bs-target="#friends-tab-pane" type="button" role="tab"
-                                                            aria-controls="friends-tab-pane" aria-selected="false">Friends</Nav.Link>
-                                                    </Nav.Item> */}
+                          <Nav.Item className="" role="presentation">
+                            <Nav.Link
+                              eventKey="timeline"
+                              className="w-100 text-start"
+                              id="timeline-tab"
+                              data-bs-toggle="tab"
+                              data-bs-target="#timeline-tab-pane"
+                              type="button"
+                              role="tab"
+                              aria-controls="timeline-tab-pane"
+                              aria-selected="false"
+                            >
+                              Timeline
+                            </Nav.Link>
+                          </Nav.Item>
+                          <Nav.Item className="" role="presentation">
+                            <Nav.Link
+                              eventKey="gallery"
+                              className="w-100 text-start"
+                              id="gallery-tab"
+                              data-bs-toggle="tab"
+                              data-bs-target="#gallery-tab-pane"
+                              type="button"
+                              role="tab"
+                              aria-controls="gallery-tab-pane"
+                              aria-selected="false"
+                            >
+                              Gallery
+                            </Nav.Link>
+                          </Nav.Item>
+                          <Nav.Item className="" role="presentation">
+                            <Nav.Link
+                              eventKey="friends"
+                              className="w-100 text-start"
+                              id="friends-tab"
+                              data-bs-toggle="tab"
+                              data-bs-target="#friends-tab-pane"
+                              type="button"
+                              role="tab"
+                              aria-controls="friends-tab-pane"
+                              aria-selected="false"
+                            >
+                              Friends
+                            </Nav.Link>
+                          </Nav.Item>
                         </Nav>
                         <Tab.Content id="profile-tabs">
                           <Tab.Pane
@@ -473,7 +456,7 @@ const Profile = () => {
                                   </p>
                                 </div>
                               </li>
-                              {/* <li className="list-group-item p-3">
+                              <li className="list-group-item p-3">
                                 <span className="fw-medium fs-15 d-block mb-3">
                                   Skills :
                                 </span>
@@ -575,7 +558,7 @@ const Profile = () => {
                                     </SpkBadge>
                                   </Link>
                                 </div>
-                              </li> */}
+                              </li>
                               <li className="list-group-item p-3">
                                 <span className="fw-medium fs-15 d-block mb-3">
                                   Social Media :
@@ -915,7 +898,7 @@ Specializing in [Your Specialization/Area of Expertise], I strive to infuse inno
                               </li>
                             </ul>
                           </Tab.Pane>
-                          {/* <Tab.Pane
+                          <Tab.Pane
                             eventKey="timeline"
                             className=""
                             id="timeline-tab-pane"
@@ -1460,7 +1443,7 @@ Specializing in [Your Specialization/Area of Expertise], I strive to infuse inno
                                 </div>
                               </Col>
                             </Row>
-                          </Tab.Pane> */}
+                          </Tab.Pane>
                         </Tab.Content>
                       </Tab.Container>
                     </Card.Body>
@@ -1476,4 +1459,4 @@ Specializing in [Your Specialization/Area of Expertise], I strive to infuse inno
   );
 };
 
-export default Profile;
+export default ProfileComponent;
