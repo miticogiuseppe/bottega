@@ -24,7 +24,7 @@ const page = () => {
   };
 
   const RouteChange = () => {
-    router.push("/dashboard/sales");
+    router.push("/testPage");
   };
 
   // Funzione login unica (admin hardcoded + Firebase)

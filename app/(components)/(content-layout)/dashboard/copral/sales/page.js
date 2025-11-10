@@ -1,9 +1,7 @@
 "use client";
 const Spkapexcharts = dynamic(
   () =>
-    import(
-      "../../../../../shared/@spk-reusable-components/reusable-plugins/spk-apexcharts"
-    ),
+    import("@/shared/@spk-reusable-components/reusable-plugins/spk-apexcharts"),
   { ssr: false }
 );
 import moment from "moment";
@@ -11,22 +9,22 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Fragment, useEffect, useState } from "react";
 import { Card, Col, Dropdown, Row } from "react-bootstrap";
-import Spkcardscomponent from "../../../../../shared/@spk-reusable-components/reusable-dashboards/spk-cards";
-import SpkCountrycard from "../../../../../shared/@spk-reusable-components/reusable-dashboards/spk-countrycard";
-import SpkFlatpickr from "../../../../../shared/@spk-reusable-components/reusable-plugins/spk-flatpicker";
-import SpkTablescomponent from "../../../../../shared/@spk-reusable-components/reusable-tables/tables-component";
-import SpkBadge from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-badge";
-import SpkBreadcrumb from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-breadcrumb";
-import SpkButton from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-button";
-import SpkDropdown from "../../../../../shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
+import Spkcardscomponent from "@/shared/@spk-reusable-components/reusable-dashboards/spk-cards";
+import SpkCountrycard from "@/shared/@spk-reusable-components/reusable-dashboards/spk-countrycard";
+import SpkFlatpickr from "@/shared/@spk-reusable-components/reusable-plugins/spk-flatpicker";
+import SpkTablescomponent from "@/shared/@spk-reusable-components/reusable-tables/tables-component";
+import SpkBadge from "@/shared/@spk-reusable-components/reusable-uielements/spk-badge";
+import SpkBreadcrumb from "@/shared/@spk-reusable-components/reusable-uielements/spk-breadcrumb";
+import SpkButton from "@/shared/@spk-reusable-components/reusable-uielements/spk-button";
+import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 import {
   Cardsdata,
   Countrydata,
   Recentorders,
   Staticoptions,
   Staticseries,
-} from "../../../../../shared/data/dashboard/salesdata";
-import Seo from "../../../../../shared/layouts-components/seo/seo";
+} from "@/shared/data/dashboard/salesdata";
+import Seo from "@/shared/layouts-components/seo/seo";
 import {
   extractValues,
   filterByRange,
