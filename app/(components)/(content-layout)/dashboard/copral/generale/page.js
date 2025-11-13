@@ -34,6 +34,7 @@ import {
   orderSheet,
   parseDates,
   sheetCount,
+  sumByKey,
 } from "@/utils/excelUtils";
 import { createOptions, createSeries } from "@/utils/graphUtils";
 
@@ -77,8 +78,12 @@ const Sales = () => {
     if (!sheetData) return;
 
     let jsonSheet = sheetData;
+
+    // Parse delle date
     jsonSheet = parseDates(jsonSheet, ["Data ord"]);
     jsonSheet = orderSheet(jsonSheet, ["Data ord"], ["asc"]);
+
+    // Filtro per intervallo di date
     if (startDate && startDate[0] && startDate[1]) {
       jsonSheet = filterByRange(
         jsonSheet,
@@ -86,18 +91,41 @@ const Sales = () => {
         moment(startDate[0]),
         moment(startDate[1])
       );
-    } else
-      jsonSheet = filterByWeek(jsonSheet, "Data ord", moment("2025-09-20"), 2);
-    if (selectedAgent)
+    } else {
+      jsonSheet = filterByWeek(jsonSheet, "Data ord", moment(), 2);
+    }
+
+    // Filtro per agente selezionato
+    if (selectedAgent) {
       jsonSheet = filterSheet(jsonSheet, "Des. Agente", selectedAgent);
-    const counters = sheetCount(jsonSheet, ["Data ord"]);
-    const series = createSeries(counters);
-    const options = createOptions(
-      counters,
-      "Data ord",
-      (d) => d.format("DD/MM/YYYY"),
-      "bar"
-    );
+    }
+
+    // Somma quantità per articolo (puoi sostituire "Articolo" con "Macchina" se serve)
+    const counters = sumByKey(jsonSheet, "Articolo", "Qta da ev");
+
+    // Ordina e limita (top 20 articoli)
+    const topCounters = counters.sort((a, b) => b.count - a.count).slice(0, 20);
+
+    // Prepara serie ApexCharts
+    const series = [
+      {
+        name: "Quantità",
+        data: topCounters.map((c) => ({
+          x: c.Articolo,
+          y: Number(c.count),
+        })),
+      },
+    ];
+
+    // Opzioni grafico
+    const options = {
+      chart: { type: "bar" },
+      dataLabels: { enabled: true },
+      xaxis: {
+        // categorie prese direttamente da `x` in data
+      },
+    };
+
     setGraphSeries(series);
     setGraphOptions(options);
   }, [sheetData, selectedAgent, startDate]);

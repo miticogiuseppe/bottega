@@ -1,84 +1,97 @@
 "use client";
-import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import moment from "moment";
+
+// Utility Excel e grafico
 import {
-  loadSheetFromUrl,
+  loadSheet,
+  parseDates,
   filterByRange,
   sumByKey,
-  parseDates,
+  orderSheet,
 } from "@/utils/excelUtils";
-import { createSeries, createOptions } from "@/utils/graphUtils";
 
-const Chart = dynamic(
+// ApexCharts
+const Spkapexcharts = dynamic(
   () =>
     import("@/shared/@spk-reusable-components/reusable-plugins/spk-apexcharts"),
-  {
-    ssr: false,
-  }
+  { ssr: false }
 );
 
-export default function AppmerceChartByArticolo({ file, startDate, endDate }) {
-  const [options, setOptions] = useState(null);
-  const [series, setSeries] = useState(null);
+export default function AppmerceChart({
+  title = "TS Azienda",
+  startDate,
+  endDate,
+}) {
+  const [graphSeries, setGraphSeries] = useState([]);
+  const [graphOptions, setGraphOptions] = useState({});
 
   useEffect(() => {
-    async function fetchData() {
+    (async () => {
       try {
-        let jsonSheet = await loadSheetFromUrl(file, "APPMERCE-000_1");
+        // Carica il file Excel
+        const response = await fetch("/data/APPMERCE-000.xlsx");
+        const blob = await response.blob();
+        let jsonSheet = await loadSheet(blob, "APPMERCE-000_1");
 
+        // Prepara i dati
         jsonSheet = parseDates(jsonSheet, ["Data ord"]);
-        jsonSheet = filterByRange(
-          jsonSheet,
-          "Data ord",
-          moment(startDate),
-          moment(endDate)
-        );
+        jsonSheet = orderSheet(jsonSheet, ["Data ord"], ["asc"]);
 
-        let counters = sumByKey(jsonSheet, "Articolo", "Qta da ev.");
-        counters = counters.sort((a, b) => b.count - a.count).slice(0, 20);
+        // Filtra per intervallo date
+        if (startDate && endDate) {
+          jsonSheet = filterByRange(
+            jsonSheet,
+            "Data ord",
+            moment(startDate),
+            moment(endDate)
+          );
+        }
 
-        const seriesData = createSeries(counters);
-        const chartOptions = createOptions(
-          counters,
-          "Articolo",
-          (d) => d,
-          "bar"
-        );
+        // Somma quantità per Articolo
+        let counters = sumByKey(jsonSheet, "Articolo", "Qta da ev");
+        counters = counters.sort((a, b) => b.count - a.count);
 
-        setSeries(seriesData);
-        setOptions(chartOptions);
-      } catch (error) {
-        console.error("Errore nel caricamento del grafico:", error);
-        setOptions(null);
-        setSeries(null);
+        // Trasforma per ApexCharts
+        const seriesData = [
+          {
+            name: "Quantità",
+            data: counters.map((c) => ({ x: c.Articolo, y: Number(c.count) })),
+          },
+        ];
+
+        const chartOptions = {
+          chart: { type: "bar" },
+          dataLabels: { enabled: true },
+          xaxis: {},
+        };
+
+        setGraphSeries(seriesData);
+        setGraphOptions(chartOptions);
+      } catch (err) {
+        console.error("Errore nel caricamento del grafico TS Azienda:", err);
       }
-    }
+    })();
+  }, [startDate, endDate]);
 
-    fetchData();
-  }, [file, startDate, endDate]);
-
-  if (
-    !options ||
-    !options.chart ||
-    !options.chart.type ||
-    !Array.isArray(series)
-  ) {
-    return <p>Grafico non disponibile o dati incompleti.</p>;
-  }
+  if (graphSeries.length === 0) return <p>Caricamento dati in corso...</p>;
 
   return (
-    <div className="w-full">
-      {options?.chart?.type && Array.isArray(series) ? (
-        <Chart
-          chartOptions={options}
-          chartSeries={series}
-          type={options.chart.type}
+    <div className="custom-card">
+      <div className="card-header justify-content-between">
+        <h5 className="card-title mb-0">{title}</h5>
+      </div>
+      <div className="card-body">
+        <Spkapexcharts
+          chartOptions={graphOptions}
+          chartSeries={graphSeries}
+          //type={graphOptions.chart?.type || "bar"}
+          type={graphOptions.chart.type}
+          width="100%"
           height={350}
         />
-      ) : (
-        <p>Grafico non disponibile o dati incompleti.</p>
-      )}
+      </div>
     </div>
   );
 }

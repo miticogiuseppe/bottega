@@ -1,11 +1,12 @@
 "use client";
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import Seo from "@/shared/layouts-components/seo/seo";
 import Pageheader from "@/shared/layouts-components/page-header/pageheader";
 import MacchinaDashboard from "@/components/MacchinaDashboard";
 import AppmerceChart from "@/components/AppmerceChart";
 import AppmerceChartByArticolo from "@/components/AppmerceChartByArticolo";
+import SpkFlatpickr from "@/shared/@spk-reusable-components/reusable-plugins/spk-flatpicker";
 
 const imballatricetest = {
   nome: "Imballatrice",
@@ -54,6 +55,9 @@ const imballatricetest = {
 };
 
 export default function PaginaImballatrice() {
+  // Stato per la selezione date
+  const [pickerDate, setPickerDate] = useState([null, null]);
+
   return (
     <Fragment>
       {/* SEO + intestazione */}
@@ -72,16 +76,31 @@ export default function PaginaImballatrice() {
         </Col>
       </Row>
 
-      {/* Grafico TS Azienda (Appmerce) */}
+      {/* Selettore date per filtrare TS Azienda */}
+      <Row className="mt-3">
+        <Col xl={6}>
+          <SpkFlatpickr
+            options={{ mode: "range", dateFormat: "Y-m-d" }}
+            onfunChange={(date) => setPickerDate(date)}
+            value={pickerDate}
+          />
+        </Col>
+      </Row>
+
+      {/* Grafici */}
       <Row className="mt-4">
         <Col xl={6}>
-          <AppmerceChart title="TS Azienda" />
+          <AppmerceChart
+            title="TS Azienda"
+            startDate={pickerDate?.[0]}
+            endDate={pickerDate?.[1]}
+          />
         </Col>
         <Col xl={6}>
           <AppmerceChartByArticolo
             file={imballatricetest.fileAppmerce}
-            startDate="2025-10-01"
-            endDate="2025-10-31"
+            startDate={pickerDate?.[0]}
+            endDate={pickerDate?.[1]}
           />
         </Col>
       </Row>
