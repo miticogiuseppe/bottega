@@ -19,7 +19,6 @@ const Spkapexcharts = dynamic(
 );
 
 export default function AppmerceChartByDate({
-  title = "TS Azienda",
   startDate, // oggetto moment o stringa "YYYY-MM-DD"
   endDate, // oggetto moment o stringa "YYYY-MM-DD"
 }) {
@@ -50,23 +49,38 @@ export default function AppmerceChartByDate({
           );
         }
 
-        // Somma quantità per articolo
-        let counters = sumByKey(jsonSheet, "Articolo", "Qta da ev");
-        counters = counters.sort((a, b) => b.count - a.count);
+        // 🔎 Somma quantità per giorno
+        let counters = sumByKey(jsonSheet, "Data ord", "Qta da ev");
 
-        // Trasforma in formato ApexCharts {x, y}
+        // Ordina per data
+        counters = counters.sort(
+          (a, b) => new Date(a["Data ord"]) - new Date(b["Data ord"])
+        );
+
+        // Trasforma in formato ApexCharts {x, y} con date formattate
         const seriesData = [
           {
             name: "Quantità",
             data: counters.map((c) => ({
-              x: c.Articolo,
+              x: String(moment(c["Data ord"]).format("DD/MM/YYYY")), // sempre stringa
               y: Number(c.count),
             })),
           },
         ];
 
-        // Opzioni grafico
-        const chartOptions = createOptions(counters, "Articolo", null, "bar");
+        // 🔎 Mantieni lo stile di createOptions e aggiungi la formattazione
+        const baseOptions = createOptions(counters, "Data ord", null, "bar");
+        const chartOptions = {
+          ...baseOptions,
+          xaxis: {
+            ...baseOptions.xaxis,
+            type: "category", // forza le etichette come testo
+            labels: {
+              ...baseOptions.xaxis?.labels,
+              formatter: (val) => val, // mostra la stringa formattata
+            },
+          },
+        };
 
         setGraphSeries(seriesData);
         setGraphOptions(chartOptions);
@@ -82,13 +96,11 @@ export default function AppmerceChartByDate({
 
   return (
     <div className="custom-card">
-      <div className="card-header justify-content-between">
-        <h5 className="card-title mb-0">{title}</h5>
-      </div>
+      <div className="card-header justify-content-between"></div>
       <div className="card-body">
         {loading ? (
           <p>Caricamento dati in corso...</p>
-        ) : graphSeries.length > 0 && graphOptions.chart.type ? (
+        ) : graphSeries.length > 0 && graphOptions.chart?.type ? (
           <Spkapexcharts
             chartOptions={graphOptions}
             chartSeries={graphSeries}

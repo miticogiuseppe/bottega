@@ -19,11 +19,7 @@ const Spkapexcharts = dynamic(
   { ssr: false }
 );
 
-export default function AppmerceChart({
-  title = "TS Azienda",
-  startDate,
-  endDate,
-}) {
+export default function AppmerceChart({ startDate, endDate }) {
   const [graphSeries, setGraphSeries] = useState([]);
   const [graphOptions, setGraphOptions] = useState({});
 
@@ -79,9 +75,7 @@ export default function AppmerceChart({
 
   return (
     <div className="custom-card">
-      <div className="card-header justify-content-between">
-        <h5 className="card-title mb-0">{title}</h5>
-      </div>
+      <div className="card-header justify-content-between"></div>
       <div className="card-body">
         <Spkapexcharts
           chartOptions={graphOptions}
