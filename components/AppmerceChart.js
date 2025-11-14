@@ -18,10 +18,7 @@ const Spkapexcharts = dynamic(
   { ssr: false }
 );
 
-export default function AppmerceChartByDate({
-  startDate, // oggetto moment o stringa "YYYY-MM-DD"
-  endDate, // oggetto moment o stringa "YYYY-MM-DD"
-}) {
+export default function AppmerceChartByDate({ startDate, endDate }) {
   const [graphSeries, setGraphSeries] = useState([]);
   const [graphOptions, setGraphOptions] = useState({});
   const [loading, setLoading] = useState(true);
@@ -57,27 +54,33 @@ export default function AppmerceChartByDate({
           (a, b) => new Date(a["Data ord"]) - new Date(b["Data ord"])
         );
 
-        // Trasforma in formato ApexCharts {x, y} con date formattate
+        // 🔎 Prepara categorie già formattate
+        const categories = counters.map((c) =>
+          moment(c["Data ord"]).format("DD/MM/YYYY")
+        );
+
+        // Serie dati
         const seriesData = [
           {
             name: "Quantità",
             data: counters.map((c) => ({
-              x: String(moment(c["Data ord"]).format("DD/MM/YYYY")), // sempre stringa
+              x: moment(c["Data ord"]).format("DD/MM/YYYY"),
               y: Number(c.count),
             })),
           },
         ];
 
-        // 🔎 Mantieni lo stile di createOptions e aggiungi la formattazione
+        // 🔎 Mantieni lo stile di createOptions e sostituisci le categorie
         const baseOptions = createOptions(counters, "Data ord", null, "bar");
         const chartOptions = {
           ...baseOptions,
           xaxis: {
             ...baseOptions.xaxis,
-            type: "category", // forza le etichette come testo
+            type: "category",
+            categories, // 👈 categorie già formattate
             labels: {
               ...baseOptions.xaxis?.labels,
-              formatter: (val) => val, // mostra la stringa formattata
+              formatter: (val) => val,
             },
           },
         };
@@ -92,7 +95,7 @@ export default function AppmerceChartByDate({
         setLoading(false);
       }
     })();
-  }, [startDate, endDate]); // Ricarica ogni volta che cambia il range
+  }, [startDate, endDate]);
 
   return (
     <div className="custom-card">
