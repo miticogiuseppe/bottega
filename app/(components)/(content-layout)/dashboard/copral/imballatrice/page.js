@@ -1,12 +1,15 @@
 "use client";
 import React, { Fragment, useState } from "react";
-import { Col, Row } from "react-bootstrap";
+import { Col, Row, Card } from "react-bootstrap";
 import Seo from "@/shared/layouts-components/seo/seo";
 import Pageheader from "@/shared/layouts-components/page-header/pageheader";
 import MacchinaDashboard from "@/components/MacchinaDashboard";
 import AppmerceChart from "@/components/AppmerceChart";
 import AppmerceChartByArticolo from "@/components/AppmerceChartByArticolo";
 import SpkFlatpickr from "@/shared/@spk-reusable-components/reusable-plugins/spk-flatpicker";
+import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
+import Dropdown from "react-bootstrap/Dropdown";
+import dayjs from "dayjs";
 
 const imballatricetest = {
   nome: "Imballatrice",
@@ -17,50 +20,43 @@ const imballatricetest = {
     imballaggi: 2340,
     dataConsegna: "2025-10-27",
   },
+};
 
-  graficoTS: {
-    options: {
-      chart: { type: "bar" },
-      xaxis: {},
-    },
+// Utility per calcolare range date da periodo
+const calcolaRange = (periodo) => {
+  const oggi = dayjs();
+  const inizio = {
+    settimana: oggi.subtract(7, "day"),
+    mese: oggi.subtract(1, "month"),
+    anno: oggi.startOf("year"),
+  }[periodo];
+  return {
+    startDate: inizio.format("YYYY-MM-DD"),
+    endDate: oggi.format("YYYY-MM-DD"),
+  };
+};
 
-    series: [
-      {
-        name: "TS Azienda",
-        data: [
-          { x: "Vetrate", y: 120, date: "2025-10-01" },
-          { x: "Alluminio", y: 85, date: "2025-10-15" },
-          { x: "PVC", y: 60, date: "2025-10-27" },
-          { x: "Legno", y: 40, date: "2025-11-04" },
-        ],
-      },
-    ],
-  },
-  graficoMacchina: {
-    options: {
-      chart: { type: "bar" },
-      xaxis: {},
-    },
-    series: [
-      {
-        name: "Produzione",
-        data: [
-          { x: "Default", y: 150, date: "2025-10-10" },
-          { x: "Pergola", y: 90, date: "2025-10-25" },
-          { x: "Tenda", y: 40, date: "2025-11-03" },
-        ],
-      },
-    ],
-  },
+// Utility per formattare sempre le date
+const fmt = (d) => {
+  if (!d) return "";
+  return typeof d === "string" ? d : dayjs(d).format("YYYY-MM-DD");
 };
 
 export default function PaginaImballatrice() {
-  // Stato per la selezione date
-  const [pickerDate, setPickerDate] = useState([null, null]);
+  // Stato per TS Azienda
+  const [pickerDateTS, setPickerDateTS] = useState([null, null]);
+  const [periodoTS, setPeriodoTS] = useState("mese");
+  const { startDate: startDateTS, endDate: endDateTS } =
+    calcolaRange(periodoTS);
+
+  // Stato per Produzione per Articolo
+  const [pickerDateArt, setPickerDateArt] = useState([null, null]);
+  const [periodoArt, setPeriodoArt] = useState("mese");
+  const { startDate: startDateArt, endDate: endDateArt } =
+    calcolaRange(periodoArt);
 
   return (
     <Fragment>
-      {/* SEO + intestazione */}
       <Seo title="Macchina - Imballatrice" />
       <Pageheader
         title="Macchine"
@@ -69,39 +65,122 @@ export default function PaginaImballatrice() {
         showActions={false}
       />
 
-      {/* Contenuto principale */}
       <Row>
         <Col xxl={12}>
           <MacchinaDashboard {...imballatricetest} />
         </Col>
       </Row>
 
-      {/* Selettore date per filtrare TS Azienda */}
-      <Row className="mt-3">
-        <Col xl={6}>
-          <SpkFlatpickr
-            options={{ mode: "range", dateFormat: "Y-m-d" }}
-            onfunChange={(date) => setPickerDate(date)}
-            value={pickerDate}
-          />
-        </Col>
-      </Row>
-
-      {/* Grafici */}
+      {/* Card TS Azienda */}
       <Row className="mt-4">
         <Col xl={6}>
-          <AppmerceChart
-            title="TS Azienda"
-            startDate={pickerDate?.[0]}
-            endDate={pickerDate?.[1]}
-          />
+          <Card className="custom-card h-100">
+            <Card.Header className="justify-content-between">
+              <Card.Title>TS Azienda</Card.Title>
+              <SpkDropdown
+                toggleas="a"
+                Customtoggleclass="btn btn-sm btn-light text-muted"
+                Toggletext="Periodo"
+              >
+                <Dropdown.Item
+                  onClick={() => {
+                    setPeriodoTS("settimana");
+                    setPickerDateTS([null, null]);
+                  }}
+                >
+                  Questa settimana
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onClick={() => {
+                    setPeriodoTS("mese");
+                    setPickerDateTS([null, null]);
+                  }}
+                >
+                  Ultimo mese
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onClick={() => {
+                    setPeriodoTS("anno");
+                    setPickerDateTS([null, null]);
+                  }}
+                >
+                  Anno corrente
+                </Dropdown.Item>
+              </SpkDropdown>
+            </Card.Header>
+            <Card.Body>
+              <SpkFlatpickr
+                options={{ mode: "range", dateFormat: "Y-m-d" }}
+                onfunChange={(date) => setPickerDateTS(date)}
+                value={pickerDateTS}
+              />
+              <p className="text-muted mb-2">
+                Visualizzazione: ({fmt(pickerDateTS?.[0]) || startDateTS} →{" "}
+                {fmt(pickerDateTS?.[1]) || endDateTS})
+              </p>
+              <AppmerceChart
+                title="TS Azienda"
+                startDate={fmt(pickerDateTS?.[0]) || startDateTS}
+                endDate={fmt(pickerDateTS?.[1]) || endDateTS}
+              />
+            </Card.Body>
+          </Card>
         </Col>
+
+        {/* Card Produzione per Articolo */}
         <Col xl={6}>
-          <AppmerceChartByArticolo
-            file={imballatricetest.fileAppmerce}
-            startDate={pickerDate?.[0]}
-            endDate={pickerDate?.[1]}
-          />
+          <Card className="custom-card h-100">
+            <Card.Header className="justify-content-between">
+              <Card.Title>Produzione per Articolo</Card.Title>
+              <SpkDropdown
+                toggleas="a"
+                Customtoggleclass="btn btn-sm btn-light text-muted"
+                Toggletext="Periodo"
+              >
+                <Dropdown.Item
+                  onClick={() => {
+                    setPeriodoArt("settimana");
+                    setPickerDateArt([null, null]);
+                  }}
+                >
+                  Questa settimana
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onClick={() => {
+                    setPeriodoArt("mese");
+                    setPickerDateArt([null, null]);
+                  }}
+                >
+                  Ultimo mese
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onClick={() => {
+                    setPeriodoArt("anno");
+                    setPickerDateArt([null, null]);
+                  }}
+                >
+                  Anno corrente
+                </Dropdown.Item>
+              </SpkDropdown>
+            </Card.Header>
+            <Card.Body>
+              <SpkFlatpickr
+                options={{ mode: "range", dateFormat: "Y-m-d" }}
+                onfunChange={(date) => setPickerDateArt(date)}
+                value={pickerDateArt}
+              />
+              <p className="text-muted mb-2">
+                Visualizzazione: {periodoArt} (
+                {fmt(pickerDateArt?.[0]) || startDateArt} →{" "}
+                {fmt(pickerDateArt?.[1]) || endDateArt})
+              </p>
+              <AppmerceChartByArticolo
+                file={imballatricetest.fileAppmerce}
+                startDate={fmt(pickerDateArt?.[0]) || startDateArt}
+                endDate={fmt(pickerDateArt?.[1]) || endDateArt}
+              />
+            </Card.Body>
+          </Card>
         </Col>
       </Row>
     </Fragment>
