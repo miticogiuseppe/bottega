@@ -31,7 +31,7 @@ export default function PaginaTroncatrice() {
   useEffect(() => {
     async function fetchData() {
       const response = await fetch(
-        "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1"
+        "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
       const json = await response.json();
       let data = json.data;
@@ -48,7 +48,7 @@ export default function PaginaTroncatrice() {
   useEffect(() => {
     async function fetchData() {
       const response = await fetch(
-        "/api/fetch-excel-json?id=TRONCATRICE_ESTESO&sheet=Foglio1"
+        "/api/fetch-excel-json?id=TRONCATRICE_ESTESO&sheet=Foglio1",
       );
       const json = await response.json();
       let data = json.data;
@@ -150,6 +150,7 @@ export default function PaginaTroncatrice() {
                 title="Ordini"
                 fileExcel="APPMERCE-000"
                 dateColumn="Data ord"
+                enableSearch={true}
                 filterDate={computeDate(pickerDateTS, periodoTS)}
                 tableHeaders={[
                   { title: "Data ord.", column: "Data ord" },

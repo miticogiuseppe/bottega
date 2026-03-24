@@ -16,6 +16,7 @@ import { Card, Col, Row } from "react-bootstrap";
 const resources = {
   // fileStorico: "/api/download-resource?id=STORICO_IMBALLATRICE",
   fileAppmerce: "/api/download-resource?id=APPMERCE-000",
+  fileStorico: "/api/download-resource?id=pulitrice",
 };
 
 export default function PaginaPulitrice() {
@@ -31,7 +32,7 @@ export default function PaginaPulitrice() {
   useEffect(() => {
     async function fetchData() {
       const res = await fetch(
-        "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1"
+        "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
       const resp = await res.json();
       let data = resp.data;
@@ -152,6 +153,7 @@ export default function PaginaPulitrice() {
                 title="Ordini"
                 fileExcel="APPMERCE-000"
                 dateColumn="Data ord"
+                enableSearch={true}
                 filterDate={computeDate(pickerDateTS, periodoTS)}
                 tableHeaders={[
                   { title: "Data ord.", column: "Data ord" },

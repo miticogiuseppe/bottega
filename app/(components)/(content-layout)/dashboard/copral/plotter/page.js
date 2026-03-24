@@ -209,6 +209,7 @@ export default function PaginaPlotter() {
                 title="Ordini"
                 fileExcel="APPMERCE-000"
                 dateColumn="Data ord"
+                enableSearch={true}
                 filterDate={computeDate(pickerDateTS, periodoTS)}
                 tableHeaders={[
                   { title: "Data ord.", column: "Data ord" },

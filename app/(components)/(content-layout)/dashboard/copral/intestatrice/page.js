@@ -32,7 +32,7 @@ export default function PaginaIntestatrice() {
   useEffect(() => {
     async function fetchData() {
       const res = await fetch(
-        "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1"
+        "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
       const resp = await res.json();
       let data = resp.data;
@@ -49,7 +49,7 @@ export default function PaginaIntestatrice() {
   useEffect(() => {
     async function fetchData() {
       const res = await fetch(
-        "/api/fetch-excel-json?id=intestatrice&sheet=foglio1"
+        "/api/fetch-excel-json?id=intestatrice&sheet=foglio1",
       );
       const resp = await res.json();
       let data = resp.data;
@@ -155,6 +155,7 @@ export default function PaginaIntestatrice() {
                 title="Ordini"
                 fileExcel="APPMERCE-000"
                 dateColumn="Data ord"
+                enableSearch={true}
                 filterDate={computeDate(pickerDateTS, periodoTS)}
                 tableHeaders={[
                   { title: "Data ord.", column: "Data ord" },
