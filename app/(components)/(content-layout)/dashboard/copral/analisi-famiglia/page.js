@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, Fragment } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import { Col, Row, Card, Form } from "react-bootstrap";
 import SpkTablescomponent from "@/shared/@spk-reusable-components/reusable-tables/tables-component";
 import SpkBadge from "@/shared/@spk-reusable-components/reusable-uielements/spk-badge";
@@ -11,7 +11,14 @@ import Preloader from "@/utils/Preloader";
 import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 
 const AnalisiPerFamiglia = () => {
-  const [sheetData, setSheetData] = useState(undefined);
+  const [matrix, setMatrix] = useState([]);
+  const [allAgents, setAllAgents] = useState([]);
+  const [kpis, setKpis] = useState({
+    globalVal: 0,
+    globalAlmQ: 0,
+    globalAccQ: 0,
+  });
+  const [totalsByAgent, setTotalsByAgent] = useState({});
   const [isFetching, setIsFetching] = useState(true);
   const [openFamilies, setOpenFamilies] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,19 +27,18 @@ const AnalisiPerFamiglia = () => {
     const controller = new AbortController();
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          "/api/fetch-excel-json?id=STATISTICA_VENDUTO_AGENTE",
-          {
-            signal: controller.signal,
-          },
-        );
+        const response = await fetch("/api/analisi-famiglia", {
+          signal: controller.signal,
+        });
         if (!response.ok) throw new Error(`Errore HTTP: ${response.status}`);
         const json = await response.json();
-        setSheetData(json?.data ?? []);
+        setMatrix(json.matrix ?? []);
+        setAllAgents(json.allAgents ?? []);
+        setKpis(json.kpis ?? { globalVal: 0, globalAlmQ: 0, globalAccQ: 0 });
+        setTotalsByAgent(json.totalsByAgent ?? {});
       } catch (error) {
         if (error.name !== "AbortError") {
-          console.error("Errore STAVEN:", error);
-          setSheetData([]);
+          console.error("Errore analisi-famiglia:", error);
         }
       } finally {
         setIsFetching(false);
@@ -41,67 +47,6 @@ const AnalisiPerFamiglia = () => {
     fetchData();
     return () => controller.abort();
   }, []);
-
-  const { matrix, allAgents, kpis, totalsByAgent } = useMemo(() => {
-    if (!sheetData || !Array.isArray(sheetData))
-      return {
-        matrix: [],
-        allAgents: [],
-        kpis: { globalVal: 0, globalAlmQ: 0, globalAccQ: 0 },
-        totalsByAgent: {},
-      };
-
-    const tree = {};
-    const agentsSet = new Set();
-    const agentTotals = {};
-    let globalVal = 0,
-      globalAlmQ = 0,
-      globalAccQ = 0;
-
-    sheetData.forEach((row) => {
-      const agente = row["Descrizione Agente"] || "NON ASSEGNATO";
-      const macro =
-        row["Descrizione Famiglia"]?.toUpperCase().trim() || "VARIE";
-      const sotto = (row["Descrizione Gruppo"] || "ALTRO").toUpperCase().trim();
-      const valore = parseFloat(row["Valore"]) || 0;
-      const qta = parseFloat(row["Quantita'"]) || 0;
-
-      agentsSet.add(agente);
-      globalVal += valore;
-      if (macro.includes("ALLUMINIO")) globalAlmQ += qta;
-      if (macro.includes("ACCESSORI")) globalAccQ += qta;
-
-      // Aggregazione Macro
-      if (!tree[macro])
-        tree[macro] = { nome: macro, sotto: {}, agenti: {}, totV: 0 };
-      if (!tree[macro].agenti[agente])
-        tree[macro].agenti[agente] = { v: 0, q: 0 };
-      tree[macro].agenti[agente].v += valore;
-      tree[macro].agenti[agente].q += qta;
-      tree[macro].totV += valore;
-
-      // Aggregazione Sotto
-      if (!tree[macro].sotto[sotto])
-        tree[macro].sotto[sotto] = { nome: sotto, agenti: {}, totV: 0 };
-      if (!tree[macro].sotto[sotto].agenti[agente])
-        tree[macro].sotto[sotto].agenti[agente] = { v: 0, q: 0 };
-      tree[macro].sotto[sotto].agenti[agente].v += valore;
-      tree[macro].sotto[sotto].agenti[agente].q += qta;
-      tree[macro].sotto[sotto].totV += valore;
-
-      // Totali per Colonna (Agenti)
-      if (!agentTotals[agente]) agentTotals[agente] = { v: 0, q: 0 };
-      agentTotals[agente].v += valore;
-      agentTotals[agente].q += qta;
-    });
-
-    return {
-      matrix: Object.values(tree).sort((a, b) => a.nome.localeCompare(b.nome)),
-      allAgents: Array.from(agentsSet).sort(),
-      kpis: { globalVal, globalAlmQ, globalAccQ },
-      totalsByAgent: agentTotals,
-    };
-  }, [sheetData]);
 
   const dynamicCards = [
     {
@@ -290,6 +235,7 @@ const AnalisiPerFamiglia = () => {
                           ))}
                       </Fragment>
                     ))}
+
                   {/* RIGA TOTALE COMPLESSIVO */}
                   <tr className="table-dark">
                     <th scope="row">TOTALE COMPLESSIVO</th>
@@ -297,12 +243,12 @@ const AnalisiPerFamiglia = () => {
                       <Fragment key={ag}>
                         <td className="text-end fw-bold">
                           €{" "}
-                          {totalsByAgent[ag].v.toLocaleString("it-IT", {
+                          {(totalsByAgent[ag]?.v || 0).toLocaleString("it-IT", {
                             minimumFractionDigits: 2,
                           })}
                         </td>
                         <td className="text-center fw-bold">
-                          {totalsByAgent[ag].q.toLocaleString("it-IT")}
+                          {(totalsByAgent[ag]?.q || 0).toLocaleString("it-IT")}
                         </td>
                       </Fragment>
                     ))}

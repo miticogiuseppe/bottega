@@ -8,125 +8,43 @@ import Spkcardscomponent from "@/shared/@spk-reusable-components/reusable-dashbo
 import Pageheader from "@/shared/layouts-components/page-header/pageheader";
 import Seo from "@/shared/layouts-components/seo/seo";
 import Preloader from "@/utils/Preloader";
-// Icone
-import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
+import { PiMoneyThin, PiScalesThin } from "react-icons/pi";
 
 const StatisticheVendutoCopral = () => {
-  const [sheetData, setSheetData] = useState(undefined);
+  const [processedData, setProcessedData] = useState([]);
+  const [allFamilies, setAllFamilies] = useState([]);
+  const [kpis, setKpis] = useState({
+    globalVal: 0,
+    globalAlmQ: 0,
+    globalAccQ: 0,
+  });
   const [isFetching, setIsFetching] = useState(true);
   const [openAgents, setOpenAgents] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
-
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          "/api/fetch-excel-json?id=STATISTICA_VENDUTO_AGENTE",
-          { signal: controller.signal },
-        );
-
-        if (!response.ok) {
-          throw new Error(`Errore HTTP: ${response.status}`);
-        }
-
+        const response = await fetch("/api/statistiche-venduto", {
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error(`Errore HTTP: ${response.status}`);
         const json = await response.json();
-        setSheetData(json?.data ?? []);
+        setProcessedData(json.processedData ?? []);
+        setAllFamilies(json.allFamilies ?? []);
+        setKpis(json.kpis ?? { globalVal: 0, globalAlmQ: 0, globalAccQ: 0 });
       } catch (error) {
         if (error.name !== "AbortError") {
-          console.error("Errore STAVEN:", error);
-          setSheetData([]);
+          console.error("Errore statistiche-venduto:", error);
         }
       } finally {
         setIsFetching(false);
       }
     };
-
     fetchData();
-
     return () => controller.abort();
   }, []);
-
-  const { processedData, allFamilies, kpis } = useMemo(() => {
-    if (!sheetData || !Array.isArray(sheetData))
-      return { processedData: [], allFamilies: [], kpis: {} };
-
-    const grouped = {};
-    const familiesSet = new Set();
-    let globalVal = 0,
-      globalAlmQ = 0,
-      globalAccQ = 0;
-
-    sheetData.forEach((row) => {
-      const agenteNome = row["Descrizione Agente"] || "NON ASSEGNATO";
-      const clienteNome =
-        row["Descrizione Cliente/Fornitore"] || "CLIENTE GENERICO";
-
-      // --- LOGICA DI PULIZIA E ABBREVIAZIONE NOMI FAMIGLIA ---
-      let famigliaRaw =
-        row["Descrizione Famiglia"]?.toUpperCase().trim() || "VARIE";
-      let famiglia = famigliaRaw;
-
-      if (
-        famigliaRaw === "EFFETTO LEGNO ACCIAIO" ||
-        famigliaRaw === "EFFETTO LEGNO/ACCIAIO"
-      ) {
-        famiglia = "EFF. LGN/ACC.";
-      } else if (famigliaRaw.includes("INESISTENTE")) {
-        famiglia = "VARIE";
-      }
-      const valore = parseFloat(row["Valore"]) || 0;
-      const qta = parseFloat(row["Quantita'"]) || 0;
-      familiesSet.add(famiglia);
-
-      globalVal += valore;
-      if (famigliaRaw.includes("ALLUMINIO")) globalAlmQ += qta;
-      if (famigliaRaw.includes("ACCESSORI")) globalAccQ += qta;
-
-      // Se è un accessorio e ha la virgola, stampalo nella console del browser (F12)
-      const um = row["Descrizione GesUM"] || "NON DEFINITA";
-
-      const qt = row["Quantita'"];
-      if (famiglia.includes("ACCESSORI") && !Number.isInteger(parseFloat(qt))) {
-        console.log(
-          `Sospetto trovato! Articolo: ${row["Descrizione Articolo"]}, Q.tà: ${qt}, UM: ${um}`,
-        );
-      }
-
-      if (!grouped[agenteNome]) {
-        grouped[agenteNome] = {
-          nome: agenteNome,
-          famiglie: {},
-          totVal: 0,
-          clienti: {},
-        };
-      }
-      if (!grouped[agenteNome].clienti[clienteNome]) {
-        grouped[agenteNome].clienti[clienteNome] = {
-          nome: clienteNome,
-          famiglie: {},
-          totVal: 0,
-        };
-      }
-
-      const updateEntry = (entry) => {
-        if (!entry.famiglie[famiglia])
-          entry.famiglie[famiglia] = { v: 0, q: 0 };
-        entry.famiglie[famiglia].v += valore;
-        entry.famiglie[famiglia].q += qta;
-        entry.totVal += valore;
-      };
-      updateEntry(grouped[agenteNome]);
-      updateEntry(grouped[agenteNome].clienti[clienteNome]);
-    });
-
-    return {
-      processedData: Object.values(grouped),
-      allFamilies: Array.from(familiesSet).sort(),
-      kpis: { globalVal, globalAlmQ, globalAccQ },
-    };
-  }, [sheetData]);
 
   const filteredData = useMemo(() => {
     if (!searchTerm) return processedData;
@@ -140,13 +58,16 @@ const StatisticheVendutoCopral = () => {
     );
   }, [processedData, searchTerm]);
 
-  if (isFetching) return <Preloader show={true} />;
+  const toggleAgent = (nome) => {
+    const next = new Set(openAgents);
+    next.has(nome) ? next.delete(nome) : next.add(nome);
+    setOpenAgents(next);
+  };
 
   const dynamicCards = [
     {
       id: 1,
       title: "Fatturato Totale",
-      // focus qui: aggiungiamo minimum e maximum FractionDigits a 2
       count: `€ ${kpis.globalVal.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       svgIcon: <PiMoneyThin />,
       backgroundColor: "primary svg-white",
@@ -158,21 +79,7 @@ const StatisticheVendutoCopral = () => {
       svgIcon: <PiScalesThin />,
       backgroundColor: "primary3 svg-white",
     },
-    // {
-    //   id: 3,
-    //   title: "Totale Accessori",
-    //   // Per gli accessori (pezzi) di solito si usa intero, ma se vuoi coerenza mettiamo 2 decimali anche qui
-    //   count: `${kpis.globalAccQ.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Pz`,
-    //   svgIcon: <PiPackageThin />,
-    //   backgroundColor: "info svg-white",
-    // },
   ];
-
-  const toggleAgent = (nome) => {
-    const next = new Set(openAgents);
-    next.has(nome) ? next.delete(nome) : next.add(nome);
-    setOpenAgents(next);
-  };
 
   const tableHeader = [
     { title: "Agente / Cliente" },
@@ -182,6 +89,8 @@ const StatisticheVendutoCopral = () => {
     ]),
     { title: "TOT. VALORE (€)" },
   ];
+
+  if (isFetching) return <Preloader show={true} />;
 
   return (
     <Fragment>
