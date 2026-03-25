@@ -28,7 +28,6 @@ const VendutoCliente = () => {
   const [data, setData] = useState([]);
   const [user, setUser] = useState(null);
   const [filteredTableData, setFilteredTableData] = useState(null);
-
   const [selectedYear, setSelectedYear] = useState("Tutti");
   const [availableYears, setAvailableYears] = useState([]);
 
@@ -59,9 +58,8 @@ const VendutoCliente = () => {
 
         setUser(session.user);
 
-        const response = await fetch(
-          "/api/fetch-excel-json?id=STATISTICA_VENDUTO_CLIENTE",
-        );
+        // ← unica modifica: nuovo endpoint
+        const response = await fetch("/api/venduto-cliente");
         const json = await response.json();
 
         if (json.data) {
@@ -75,13 +73,12 @@ const VendutoCliente = () => {
           let processedData = rawData.map((riga) => {
             let newRow = { ...riga };
             let valData = newRow["Data"];
-            let year = null;
 
             if (valData && typeof valData === "number") {
               const dateObj = new Date(
                 Math.round((valData - 25569) * 86400 * 1000),
               );
-              year = dateObj.getFullYear();
+              const year = dateObj.getFullYear();
               yearsSet.add(year);
               newRow["Data"] = dateObj.toLocaleDateString("it-IT");
               newRow["Anno_Interno"] = year;
@@ -90,18 +87,7 @@ const VendutoCliente = () => {
           });
 
           setAvailableYears(Array.from(yearsSet).sort((a, b) => b - a));
-
-          let finalData = processedData;
-          if (session.user.role === "CLIENTE" && session.user.codice_cliente) {
-            const codiceCercato = String(session.user.codice_cliente).trim();
-            finalData = processedData.filter(
-              (riga) =>
-                String(riga["Cliente/Fornitore"] || "").trim() ===
-                codiceCercato,
-            );
-          }
-
-          setData(finalData);
+          setData(processedData); // ← filtro cliente rimosso, lo fa il server
         }
       } catch (error) {
         console.error("Errore caricamento:", error);
@@ -182,87 +168,70 @@ const VendutoCliente = () => {
     ? `${user.username}${user.codice_cliente ? ` (${user.codice_cliente})` : ""}`
     : "Utente";
 
+  if (isLoading) return <Preloader show={true} />;
+
   return (
     <Fragment>
       <Seo title={`Area Cliente - ${user?.username || "Analisi"}`} />
 
-      {isLoading ? (
-        <Preloader show={true} />
-      ) : (
-        <Fragment>
-          {/* HEADER UNIFORMATO A QUELLO AGENTE */}
-          <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
-            <Pageheader
-              title="Area Cliente"
-              currentpage={`Benvenuto, ${clienteLabel}`}
-              activepage="Analisi Vendite"
-            />
-
-            <div className="d-flex align-items-center bg-white p-2 rounded shadow-sm border">
-              <span className="me-2 fw-bold text-muted">Anno:</span>
-              <Form.Select
-                style={{ width: "120px" }}
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-              >
-                <option value="Tutti">Tutti</option>
-                {availableYears.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </Form.Select>
-            </div>
-          </div>
-
-          <Row className="mb-4">
-            {dynamicCards.map((card) => (
-              <Col xxl={3} xl={3} lg={6} key={card.id}>
-                <Spkcardscomponent
-                  cardClass="overflow-hidden main-content-card"
-                  headingClass="d-block mb-1"
-                  mainClass="d-flex align-items-start justify-content-between mb-2"
-                  svgIcon={card.svgIcon}
-                  card={card}
-                  badgeClass="md"
-                  dataClass="mb-0"
-                />
-              </Col>
+      <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <Pageheader
+          title="Area Cliente"
+          currentpage={`Benvenuto, ${clienteLabel}`}
+          activepage="Analisi Vendite"
+        />
+        <div className="d-flex align-items-center bg-white p-2 rounded shadow-sm border">
+          <span className="me-2 fw-bold text-muted">Anno:</span>
+          <Form.Select
+            style={{ width: "120px" }}
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+          >
+            <option value="Tutti">Tutti</option>
+            {availableYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
             ))}
-          </Row>
+          </Form.Select>
+        </div>
+      </div>
 
-          <AppmerceTable
-            data={dataPerAnno}
-            title={
-              user?.role === "CLIENTE"
-                ? `Dettaglio per ${user.username}`
-                : "Dettaglio Vendite Totali"
-            }
-            tableHeaders={[
-              {
-                title: "Cod. Cliente",
-                column: "Cliente/Fornitore",
-                bold: true,
-              },
-              {
-                title: "Ragione Sociale",
-                column: "Descrizione Cliente/Fornitore",
-              },
-              { title: "Data", column: "Data" },
-              { title: "Quantità", column: "Quantita'", type: "number" },
-              { title: "Totale Venduto", column: "Valore", type: "number" },
-              {
-                title: "Utile (Margine)",
-                column: "Utile totale",
-                type: "number",
-              },
-            ]}
-            enableSearch={true}
-            searchPlaceholder="Cerca"
-            onFilteredDataChange={handleFilteredChange}
-          />
-        </Fragment>
-      )}
+      <Row className="mb-4">
+        {dynamicCards.map((card) => (
+          <Col xxl={3} xl={3} lg={6} key={card.id}>
+            <Spkcardscomponent
+              cardClass="overflow-hidden main-content-card"
+              headingClass="d-block mb-1"
+              mainClass="d-flex align-items-start justify-content-between mb-2"
+              svgIcon={card.svgIcon}
+              card={card}
+              badgeClass="md"
+              dataClass="mb-0"
+            />
+          </Col>
+        ))}
+      </Row>
+
+      <AppmerceTable
+        data={dataPerAnno}
+        title={
+          user?.role === "CLIENTE"
+            ? `Dettaglio per ${user.username}`
+            : "Dettaglio Vendite Totali"
+        }
+        tableHeaders={[
+          { title: "Cod. Cliente", column: "Cliente/Fornitore", bold: true },
+          { title: "Ragione Sociale", column: "Descrizione Cliente/Fornitore" },
+          { title: "Data", column: "Data" },
+          { title: "Quantità", column: "Quantita'", type: "number" },
+          { title: "Totale Venduto", column: "Valore", type: "number" },
+          { title: "Utile (Margine)", column: "Utile totale", type: "number" },
+        ]}
+        enableSearch={true}
+        searchPlaceholder="Cerca"
+        onFilteredDataChange={handleFilteredChange}
+      />
     </Fragment>
   );
 };

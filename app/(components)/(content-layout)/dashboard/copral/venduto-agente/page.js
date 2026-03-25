@@ -7,7 +7,7 @@ import React, {
   Fragment,
   useCallback,
 } from "react";
-import { Row, Col, Card, Badge } from "react-bootstrap";
+import { Row, Col } from "react-bootstrap";
 import { useRouter } from "next/navigation";
 
 import Pageheader from "@/shared/layouts-components/page-header/pageheader";
@@ -42,13 +42,9 @@ const VendutoAgente = () => {
     });
   }, []);
 
-  // ==============================
-  // Caricamento Sessione + Dati
-  // ==============================
   useEffect(() => {
     const initPage = async () => {
       setIsLoading(true);
-
       try {
         const sessionRes = await fetch("/api/auth/session");
         const session = await sessionRes.json();
@@ -60,10 +56,7 @@ const VendutoAgente = () => {
 
         setUser(session.user);
 
-        const response = await fetch(
-          "/api/fetch-excel-json?id=STATISTICA_VENDUTO_AGENTE",
-        );
-
+        const response = await fetch("/api/venduto-agente");
         const json = await response.json();
 
         if (json.data) {
@@ -79,9 +72,6 @@ const VendutoAgente = () => {
     initPage();
   }, [router]);
 
-  // ==============================
-  // Calcolo Statistiche dinamiche
-  // ==============================
   const stats = useMemo(() => {
     const source = filteredTableData !== null ? filteredTableData : data;
 
@@ -89,12 +79,10 @@ const VendutoAgente = () => {
       (acc, curr) => acc + (Number(curr["Valore"]) || 0),
       0,
     );
-
     const totaleUtile = source.reduce(
       (acc, curr) => acc + (Number(curr["Utile totale"]) || 0),
       0,
     );
-
     const totaleQuantita = source.reduce(
       (acc, curr) => acc + (Number(curr["Quantita'"]) || 0),
       0,
@@ -108,9 +96,6 @@ const VendutoAgente = () => {
     };
   }, [filteredTableData, data]);
 
-  // ==============================
-  // Card dinamiche Xintra style
-  // ==============================
   const dynamicCards = [
     {
       id: 1,
@@ -139,79 +124,68 @@ const VendutoAgente = () => {
     ? `${user.username}${user.codice_agente ? ` (${user.codice_agente})` : ""}`
     : "Utente";
 
+  if (isLoading) return <Preloader show={true} />;
+
   return (
     <Fragment>
       <Seo title={`Vendite - ${user?.username || "Agente"}`} />
 
-      {isLoading ? (
-        <Preloader show={true} />
-      ) : (
-        <Fragment>
-          <Pageheader
-            title="Area Agente"
-            currentpage={`Benvenuto, ${agenteLabel}`}
-            activepage="Analisi Vendite"
-          />
+      <Pageheader
+        title="Area Agente"
+        currentpage={`Benvenuto, ${agenteLabel}`}
+        activepage="Analisi Vendite"
+      />
 
-          {/* ============================== */}
-          {/* CARD DASHBOARD */}
-          {/* ============================== */}
-          <Row className="mb-4">
-            {dynamicCards.map((card) => (
-              <Col xxl={3} xl={3} lg={6} key={card.id}>
-                <Spkcardscomponent
-                  cardClass="overflow-hidden main-content-card"
-                  headingClass="d-block mb-1"
-                  mainClass="d-flex align-items-start justify-content-between mb-2"
-                  svgIcon={card.svgIcon}
-                  card={card}
-                  badgeClass="md"
-                  dataClass="mb-0"
-                />
-              </Col>
-            ))}
-          </Row>
+      <Row className="mb-4">
+        {dynamicCards.map((card) => (
+          <Col xxl={3} xl={3} lg={6} key={card.id}>
+            <Spkcardscomponent
+              cardClass="overflow-hidden main-content-card"
+              headingClass="d-block mb-1"
+              mainClass="d-flex align-items-start justify-content-between mb-2"
+              svgIcon={card.svgIcon}
+              card={card}
+              badgeClass="md"
+              dataClass="mb-0"
+            />
+          </Col>
+        ))}
+      </Row>
 
-          {/* ============================== */}
-          {/* TABELLA DATI */}
-          {/* ============================== */}
-
-          <AppmerceTable
-            data={data}
-            title={`Dettaglio Vendite: ${agenteLabel}`}
-            tableHeaders={[
-              {
-                title: "Codice",
-                column: "Cliente/Fornitore",
-                bold: true,
-              },
-              {
-                title: "Ragione Sociale",
-                column: "Descrizione Cliente/Fornitore",
-              },
-              {
-                title: "Quantità",
-                column: "Quantita'",
-                type: "number",
-              },
-              {
-                title: "Valore",
-                column: "Valore",
-                type: "number",
-              },
-              {
-                title: "Utile Totale",
-                column: "Utile totale",
-                type: "number",
-              },
-            ]}
-            enableSearch={true}
-            searchPlaceholder="Cerca cliente..."
-            className="custom-card"
-            onFilteredDataChange={handleFilteredChange}
-          />
-        </Fragment>
-      )}
+      <AppmerceTable
+        data={data}
+        title={`Dettaglio Vendite: ${agenteLabel}`}
+        tableHeaders={[
+          {
+            title: "Codice",
+            column: "Cliente/Fornitore",
+            bold: true,
+          },
+          {
+            title: "Ragione Sociale",
+            column: "Descrizione Cliente/Fornitore",
+          },
+          {
+            title: "Quantità",
+            column: "Quantita'",
+            type: "number",
+          },
+          {
+            title: "Valore",
+            column: "Valore",
+            type: "number",
+          },
+          {
+            title: "Utile Totale",
+            column: "Utile totale",
+            type: "number",
+          },
+        ]}
+        enableSearch={true}
+        searchPlaceholder="Cerca cliente..."
+        className="custom-card"
+        onFilteredDataChange={handleFilteredChange}
+      />
     </Fragment>
   );
 };
