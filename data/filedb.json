@@ -49,6 +49,10 @@
     {
       "id": "STATISTICA_VENDUTO_CLIENTE",
       "path": "Copral\\4.0\\STAVEN-001.xlsx"
+    },
+    {
+      "id": "STATISTICA_ACQUISTATO",
+      "path": "Copral\\4.0\\STAACQ-001.xlsx"
     }
   ],
   "Dibartolo": [

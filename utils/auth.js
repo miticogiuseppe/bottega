@@ -11,6 +11,7 @@ const PERMISSIONS = {
     "venduto_globale",
     "venduto_agente",
     "statistiche_venduto",
+    "acquistato_direzione", // ← aggiunto
   ],
   UFFICIO: [
     "dash_piena",
