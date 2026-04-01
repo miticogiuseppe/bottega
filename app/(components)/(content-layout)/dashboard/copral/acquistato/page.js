@@ -11,6 +11,46 @@ import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import { useRouter } from "next/navigation";
 
+// ─── Formattatori ─────────────────────────────────────────────────────────────
+const fmtEuro = (val) =>
+  `€ ${(val || 0).toLocaleString("it-IT", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+const fmtQty = (val, unit = "") =>
+  `${(val || 0).toLocaleString("it-IT", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}${unit ? ` ${unit}` : ""}`;
+
+// ─── Componente riga multiselect ──────────────────────────────────────────────
+const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
+  <Dropdown.Item
+    as="div"
+    onClick={(e) => e.stopPropagation()}
+    style={{ cursor: "pointer" }}
+    className="d-flex align-items-center gap-2 px-3 py-2"
+  >
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={onToggle}
+      onClick={(e) => e.stopPropagation()}
+      className="form-check-input m-0 flex-shrink-0"
+      style={{ cursor: "pointer" }}
+      id={`chk-${label}`}
+    />
+    <label
+      htmlFor={`chk-${label}`}
+      className={`mb-0 w-100 ${bold ? "fw-semibold" : ""}`}
+      style={{ cursor: "pointer" }}
+    >
+      {label}
+    </label>
+  </Dropdown.Item>
+);
+
 const AcquistatoPage = () => {
   const router = useRouter();
 
@@ -23,12 +63,11 @@ const AcquistatoPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [selectedSupplier, setSelectedSupplier] = useState("Tutti i Fornitori");
-  const [selectedFamily, setSelectedFamily] = useState("Tutte le Famiglie");
 
-  // ─────────────────────────────────────────────
-  // UTILS
-  // ─────────────────────────────────────────────
+  const [selectedSuppliers, setSelectedSuppliers] = useState([]);
+  const [selectedFamilies, setSelectedFamilies] = useState([]);
+
+  // ─── Utils ────────────────────────────────────────────────────────────────
   const cleanValue = (val) => {
     const s = String(val || "").trim();
     if (!s || s.toUpperCase().includes("INESISTENTE")) return "VUOTO";
@@ -59,9 +98,37 @@ const AcquistatoPage = () => {
     setOpenFamilies(next);
   };
 
-  // ─────────────────────────────────────────────
-  // 1. FETCH SESSIONE + GUARD + DATI
-  // ─────────────────────────────────────────────
+  // ─── Toggle fornitore ─────────────────────────────────────────────────────
+  const toggleSupplier = (s) => {
+    setSelectedSuppliers((prev) =>
+      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s],
+    );
+  };
+
+  const toggleAllSuppliers = () => {
+    if (selectedSuppliers.length === uniqueSuppliers.length) {
+      setSelectedSuppliers([]);
+    } else {
+      setSelectedSuppliers([...uniqueSuppliers]);
+    }
+  };
+
+  // ─── Toggle famiglia ──────────────────────────────────────────────────────
+  const toggleFamilyFilter = (f) => {
+    setSelectedFamilies((prev) =>
+      prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f],
+    );
+  };
+
+  const toggleAllFamilies = () => {
+    if (selectedFamilies.length === uniqueFamiliesList.length) {
+      setSelectedFamilies([]);
+    } else {
+      setSelectedFamilies([...uniqueFamiliesList]);
+    }
+  };
+
+  // ─── Fetch ────────────────────────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
       const sessionRes = await fetch("/api/auth/session");
@@ -83,7 +150,6 @@ const AcquistatoPage = () => {
         const json = await response.json();
         const rawData = json?.data ?? [];
 
-        // Normalizza la data a mezzanotte per evitare problemi di confronto
         const parsedData = rawData.map((row) => {
           let dateObj = null;
           const raw = row["Data"];
@@ -109,13 +175,51 @@ const AcquistatoPage = () => {
     init();
   }, [router]);
 
-  // ─────────────────────────────────────────────
-  // 2. AGGREGAZIONE: Famiglia → Fornitori
-  // ─────────────────────────────────────────────
+  // ─── Dropdown dinamici ────────────────────────────────────────────────────
+  const uniqueSuppliers = useMemo(() => {
+    if (!sheetData?.length) return [];
+    return [
+      ...new Set(
+        sheetData.map((r) => cleanValue(r["Descrizione Cliente/Fornitore"])),
+      ),
+    ]
+      .filter(Boolean)
+      .sort();
+  }, [sheetData]);
+
+  const uniqueFamiliesList = useMemo(() => {
+    if (!sheetData?.length) return [];
+    const list = [
+      ...new Set(
+        sheetData.map((r) =>
+          normalizaFamiglia(cleanValue(r["Descrizione Famiglia"])),
+        ),
+      ),
+    ].filter(Boolean);
+    const sorted = list.filter((f) => f !== "VUOTO" && f !== "ALTRO").sort();
+    const tail = ["VUOTO", "ALTRO"].filter((f) => list.includes(f));
+    return [...sorted, ...tail];
+  }, [sheetData]);
+
+  // ─── Label toggle ─────────────────────────────────────────────────────────
+  const supplierToggleLabel =
+    selectedSuppliers.length === 0
+      ? "Tutti i Fornitori"
+      : selectedSuppliers.length === 1
+        ? selectedSuppliers[0]
+        : `${selectedSuppliers.length} Fornitori`;
+
+  const familyToggleLabel =
+    selectedFamilies.length === 0
+      ? "Tutte le Famiglie"
+      : selectedFamilies.length === 1
+        ? selectedFamilies[0]
+        : `${selectedFamilies.length} Famiglie`;
+
+  // ─── Aggregazione dati ────────────────────────────────────────────────────
   const { matrixData, kpis } = useMemo(() => {
     if (!sheetData || !sheetData.length) return { matrixData: [], kpis: {} };
 
-    // Normalizza range date selezionato
     let start = null;
     let end = null;
     if (startDate && endDate) {
@@ -134,27 +238,21 @@ const AcquistatoPage = () => {
       const fornitoreNome = cleanValue(row["Descrizione Cliente/Fornitore"]);
       const famRaw = cleanValue(row["Descrizione Famiglia"]);
 
-      // Filtro data
       if (start && end) {
         const d = row.DataObj;
         if (!d || d < start || d > end) return;
       }
 
-      // Filtro fornitore
       if (
-        selectedSupplier !== "Tutti i Fornitori" &&
-        fornitoreNome !== selectedSupplier
-      )
-        return;
-
-      // Filtro famiglia — confronta sulla versione normalizzata
-      if (
-        selectedFamily !== "Tutte le Famiglie" &&
-        normalizaFamiglia(famRaw) !== normalizaFamiglia(selectedFamily)
+        selectedSuppliers.length > 0 &&
+        !selectedSuppliers.includes(fornitoreNome)
       )
         return;
 
       const famiglia = normalizaFamiglia(famRaw);
+      if (selectedFamilies.length > 0 && !selectedFamilies.includes(famiglia))
+        return;
+
       const valore = parseFloat(row["Valore"]) || 0;
       const qta = parseFloat(row["Quantita'"]) || 0;
 
@@ -195,9 +293,9 @@ const AcquistatoPage = () => {
       }),
       kpis: { globalVal, globalAlmQ, globalAccQ },
     };
-  }, [sheetData, startDate, endDate, selectedSupplier, selectedFamily]);
+  }, [sheetData, startDate, endDate, selectedSuppliers, selectedFamilies]);
 
-  // Ricerca su famiglia o fornitore
+  // ─── Ricerca ──────────────────────────────────────────────────────────────
   const filteredData = useMemo(() => {
     if (!searchTerm) return matrixData;
     const t = searchTerm.toLowerCase();
@@ -220,69 +318,34 @@ const AcquistatoPage = () => {
       .filter(Boolean);
   }, [matrixData, searchTerm]);
 
-  // Dropdown dinamici
-  const uniqueSuppliers = useMemo(() => {
-    if (!sheetData?.length) return ["Tutti i Fornitori"];
-    const list = [
-      ...new Set(
-        sheetData.map((r) => cleanValue(r["Descrizione Cliente/Fornitore"])),
-      ),
-    ]
-      .filter(Boolean)
-      .sort();
-    return ["Tutti i Fornitori", ...list];
-  }, [sheetData]);
-
-  const uniqueFamiliesList = useMemo(() => {
-    if (!sheetData?.length) return ["Tutte le Famiglie"];
-    const list = [
-      ...new Set(
-        sheetData.map((r) =>
-          normalizaFamiglia(cleanValue(r["Descrizione Famiglia"])),
-        ),
-      ),
-    ]
-      .filter(Boolean)
-      .sort();
-    const sorted = list.filter((f) => f !== "VUOTO" && f !== "ALTRO").sort();
-    const tail = ["VUOTO", "ALTRO"].filter((f) => list.includes(f));
-    return ["Tutte le Famiglie", ...sorted, ...tail];
-  }, [sheetData]);
-
-  // ─────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────
+  // ─── Render ───────────────────────────────────────────────────────────────
   if (isFetching) return <Preloader show={true} />;
   if (!isAuthorized) return null;
+
+  const hasActiveFilters =
+    startDate !== null ||
+    selectedSuppliers.length > 0 ||
+    selectedFamilies.length > 0;
 
   const dynamicCards = [
     {
       id: 1,
       title: "Acquistato Totale",
-      count: `€ ${kpis.globalVal?.toLocaleString("it-IT", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`,
+      count: fmtEuro(kpis.globalVal),
       svgIcon: <PiMoneyThin />,
       backgroundColor: "primary svg-white",
     },
     {
       id: 2,
       title: "Totale Alluminio",
-      count: `${kpis.globalAlmQ?.toLocaleString("it-IT", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })} Kg`,
+      count: fmtQty(kpis.globalAlmQ, "Kg"),
       svgIcon: <PiScalesThin />,
       backgroundColor: "primary3 svg-white",
     },
     {
       id: 3,
       title: "Totale Accessori",
-      count: `${kpis.globalAccQ?.toLocaleString("it-IT", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })} Pz`,
+      count: fmtQty(kpis.globalAccQ, "Pz"),
       svgIcon: <PiPackageThin />,
       backgroundColor: "info svg-white",
     },
@@ -307,56 +370,87 @@ const AcquistatoPage = () => {
             onDateChange={handleFlatpickrChange}
           />
 
+          {/* DROPDOWN FORNITORI */}
           <SpkDropdown
             toggleas="a"
             Customtoggleclass="btn btn-outline-light btn-sm border text-muted no-caret"
-            Toggletext={selectedSupplier}
+            Toggletext={supplierToggleLabel}
             Arrowicon={true}
+            autoClose="outside"
           >
             <div
-              className="dropdown-menu-filter"
               style={{
                 maxHeight: "250px",
                 overflowY: "auto",
-                minWidth: "250px",
+                minWidth: "260px",
               }}
             >
+              <MultiSelectItem
+                label="Tutti i Fornitori"
+                bold
+                checked={
+                  uniqueSuppliers.length > 0 &&
+                  selectedSuppliers.length === uniqueSuppliers.length
+                }
+                onToggle={toggleAllSuppliers}
+              />
+              <Dropdown.Divider className="my-1" />
               {uniqueSuppliers.map((s) => (
-                <Dropdown.Item key={s} onClick={() => setSelectedSupplier(s)}>
-                  {s}
-                </Dropdown.Item>
+                <MultiSelectItem
+                  key={s}
+                  label={s}
+                  checked={selectedSuppliers.includes(s)}
+                  onToggle={() => toggleSupplier(s)}
+                />
               ))}
             </div>
           </SpkDropdown>
 
+          {/* DROPDOWN FAMIGLIE */}
           <SpkDropdown
             toggleas="a"
             Customtoggleclass="btn btn-outline-light btn-sm border text-muted no-caret"
-            Toggletext={selectedFamily}
+            Toggletext={familyToggleLabel}
             Arrowicon={true}
+            autoClose="outside"
           >
             <div
-              className="dropdown-menu-filter"
-              style={{ maxHeight: "250px", overflowY: "auto" }}
+              style={{
+                maxHeight: "250px",
+                overflowY: "auto",
+                minWidth: "220px",
+              }}
             >
+              <MultiSelectItem
+                label="Tutte le Famiglie"
+                bold
+                checked={
+                  uniqueFamiliesList.length > 0 &&
+                  selectedFamilies.length === uniqueFamiliesList.length
+                }
+                onToggle={toggleAllFamilies}
+              />
+              <Dropdown.Divider className="my-1" />
               {uniqueFamiliesList.map((f) => (
-                <Dropdown.Item key={f} onClick={() => setSelectedFamily(f)}>
-                  {f}
-                </Dropdown.Item>
+                <MultiSelectItem
+                  key={f}
+                  label={f}
+                  checked={selectedFamilies.includes(f)}
+                  onToggle={() => toggleFamilyFilter(f)}
+                />
               ))}
             </div>
           </SpkDropdown>
 
-          {(startDate ||
-            selectedSupplier !== "Tutti i Fornitori" ||
-            selectedFamily !== "Tutte le Famiglie") && (
+          {/* RESET */}
+          {hasActiveFilters && (
             <button
               className="btn btn-danger-light btn-sm btn-icon"
               onClick={() => {
                 setStartDate(null);
                 setEndDate(null);
-                setSelectedSupplier("Tutti i Fornitori");
-                setSelectedFamily("Tutte le Famiglie");
+                setSelectedSuppliers([]);
+                setSelectedFamilies([]);
               }}
               title="Reset filtri"
             >
@@ -380,7 +474,7 @@ const AcquistatoPage = () => {
         ))}
       </Row>
 
-      {/* TABELLA FAMIGLIA → FORNITORI */}
+      {/* TABELLA */}
       <Row className="mt-4">
         <Col xl={12}>
           <Card className="custom-card">
@@ -398,14 +492,14 @@ const AcquistatoPage = () => {
                 <table className="table table-bordered text-nowrap border-primary sticky-header mb-0">
                   <thead className="table-primary">
                     <tr>
-                      <th className="align-middle text-center border">
+                      <th className="align-middle text-start border">
                         FAMIGLIA / FORNITORE
                       </th>
-                      <th className="align-middle text-center border">
+                      <th className="align-middle text-end border">
                         VALORE (€)
                       </th>
-                      <th className="align-middle text-center border">Q.TÀ</th>
-                      <th className="align-middle text-center border">
+                      <th className="align-middle text-end border">Q.TÀ</th>
+                      <th className="align-middle text-end border">
                         TOTALE (€)
                       </th>
                     </tr>
@@ -420,13 +514,13 @@ const AcquistatoPage = () => {
                     ) : (
                       filteredData.map((fam) => (
                         <Fragment key={fam.nome}>
-                          {/* ── RIGA FAMIGLIA ── */}
+                          {/* RIGA FAMIGLIA */}
                           <tr
                             className="table-primary-transparent"
                             style={{ cursor: "pointer" }}
                             onClick={() => toggleFamily(fam.nome)}
                           >
-                            <th scope="row" className="fw-bold">
+                            <th scope="row" className="fw-bold text-start">
                               <i
                                 className={`ri-arrow-${
                                   openFamilies.has(fam.nome) ? "down" : "right"
@@ -435,35 +529,29 @@ const AcquistatoPage = () => {
                               {fam.nome}
                             </th>
                             <td className="text-end fw-bold">
-                              €{" "}
-                              {fam.totVal.toLocaleString("it-IT", {
-                                minimumFractionDigits: 2,
-                              })}
+                              {fmtEuro(fam.totVal)}
                             </td>
-                            <td className="text-center">
+                            <td className="text-end">
                               {fam.nome.includes("ALLUMINIO") ? (
                                 <SpkBadge variant="primary">
-                                  {fam.totQ.toLocaleString("it-IT")} Kg
+                                  {fmtQty(fam.totQ || 0, "Kg")}
                                 </SpkBadge>
                               ) : fam.nome.includes("ACCESSORI") ? (
                                 <SpkBadge variant="success">
-                                  {fam.totQ.toLocaleString("it-IT")} Pz
+                                  {fmtQty(fam.totQ || 0, "Pz")}
                                 </SpkBadge>
                               ) : (
                                 <span className="text-muted">
-                                  {fam.totQ.toLocaleString("it-IT")}
+                                  {fmtQty(fam.totQ || 0)}
                                 </span>
                               )}
                             </td>
                             <td className="text-end fw-bold text-primary bg-primary-transparent">
-                              €{" "}
-                              {fam.totVal.toLocaleString("it-IT", {
-                                minimumFractionDigits: 2,
-                              })}
+                              {fmtEuro(fam.totVal)}
                             </td>
                           </tr>
 
-                          {/* ── RIGHE FORNITORI (espanse) ── */}
+                          {/* RIGHE FORNITORI */}
                           {openFamilies.has(fam.nome) &&
                             Object.values(fam.fornitori)
                               .sort((a, b) => b.totVal - a.totVal)
@@ -473,26 +561,20 @@ const AcquistatoPage = () => {
                                   className="table-hover"
                                 >
                                   <td
-                                    className="ps-5 text-muted text-uppercase"
+                                    className="ps-5 text-muted text-uppercase text-start"
                                     style={{ fontSize: "10px" }}
                                   >
                                     <i className="ri-corner-down-right-line me-2"></i>
                                     {fornitore.nome}
                                   </td>
                                   <td className="text-end text-muted">
-                                    €{" "}
-                                    {fornitore.totVal.toLocaleString("it-IT", {
-                                      minimumFractionDigits: 2,
-                                    })}
+                                    {fmtEuro(fornitore.totVal)}
                                   </td>
-                                  <td className="text-center text-muted">
-                                    {fornitore.totQ.toLocaleString("it-IT")}
+                                  <td className="text-end text-muted">
+                                    {fmtQty(fornitore.totQ || 0)}
                                   </td>
                                   <td className="text-end fw-medium text-muted">
-                                    €{" "}
-                                    {fornitore.totVal.toLocaleString("it-IT", {
-                                      minimumFractionDigits: 2,
-                                    })}
+                                    {fmtEuro(fornitore.totVal)}
                                   </td>
                                 </tr>
                               ))}
@@ -500,23 +582,20 @@ const AcquistatoPage = () => {
                       ))
                     )}
 
-                    {/* ── TOTALE COMPLESSIVO ── */}
+                    {/* TOTALE COMPLESSIVO */}
                     <tr className="table-dark">
-                      <th scope="row">TOTALE COMPLESSIVO</th>
+                      <th scope="row" className="text-start">
+                        TOTALE COMPLESSIVO
+                      </th>
                       <td className="text-end fw-bold">
-                        €{" "}
-                        {kpis.globalVal?.toLocaleString("it-IT", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="text-center fw-bold">
-                        {kpis.globalAlmQ?.toLocaleString("it-IT")} Kg
+                        {fmtEuro(kpis.globalVal)}
                       </td>
                       <td className="text-end fw-bold">
-                        €{" "}
-                        {kpis.globalVal?.toLocaleString("it-IT", {
-                          minimumFractionDigits: 2,
-                        })}
+                        {fmtQty(kpis.globalAlmQ || 0, "Kg")} /{" "}
+                        {fmtQty(kpis.globalAccQ || 0, "Pz")}
+                      </td>
+                      <td className="text-end fw-bold">
+                        {fmtEuro(kpis.globalVal)}
                       </td>
                     </tr>
                   </tbody>

@@ -12,20 +12,58 @@ import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 
+// ─── Formattatori ─────────────────────────────────────────────────────────────
+const fmtEuro = (val) =>
+  `€ ${(val || 0).toLocaleString("it-IT", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+const fmtQty = (val, unit = "") =>
+  `${(val || 0).toLocaleString("it-IT", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}${unit ? ` ${unit}` : ""}`;
+
+// ─── Componente riga multiselect ──────────────────────────────────────────────
+const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
+  <Dropdown.Item
+    as="div"
+    onClick={(e) => e.stopPropagation()}
+    style={{ cursor: "pointer" }}
+    className="d-flex align-items-center gap-2 px-3 py-2"
+  >
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={onToggle}
+      onClick={(e) => e.stopPropagation()}
+      className="form-check-input m-0 flex-shrink-0"
+      style={{ cursor: "pointer" }}
+      id={`chk-${label}`}
+    />
+    <label
+      htmlFor={`chk-${label}`}
+      className={`mb-0 w-100 ${bold ? "fw-semibold" : ""}`}
+      style={{ cursor: "pointer" }}
+    >
+      {label}
+    </label>
+  </Dropdown.Item>
+);
+
 const AnalisiPerFamiglia = () => {
   const [sheetData, setSheetData] = useState(undefined);
   const [isFetching, setIsFetching] = useState(true);
   const [openFamilies, setOpenFamilies] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState("");
 
-  // --- STATI FILTRI ---
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [selectedAgent, setSelectedAgent] = useState("Tutti gli Agenti");
-  const [selectedFamily, setSelectedFamily] = useState("Tutte le Famiglie");
-  const [selectedGroup, setSelectedGroup] = useState("Tutti i Gruppi");
+  const [selectedAgents, setSelectedAgents] = useState([]);
+  const [selectedFamilies, setSelectedFamilies] = useState([]);
+  const [selectedGroups, setSelectedGroups] = useState([]);
 
-  // Funzione di utilità per bonificare i nomi "Inesistente"
   const cleanValue = (val) => {
     const s = String(val || "").trim();
     if (!s || s.toUpperCase().includes("INESISTENTE")) return "VUOTO";
@@ -55,14 +93,11 @@ const AnalisiPerFamiglia = () => {
       try {
         const response = await fetch(
           "/api/fetch-excel-json?id=STATISTICA_VENDUTO_AGENTE",
-          {
-            signal: controller.signal,
-          },
+          { signal: controller.signal },
         );
         if (!response.ok) throw new Error(`Errore HTTP: ${response.status}`);
         const json = await response.json();
         const rawData = json?.data ?? [];
-
         const parsedData = rawData.map((row) => ({
           ...row,
           DataObj:
@@ -70,7 +105,6 @@ const AnalisiPerFamiglia = () => {
               ? excelDateToJS(row["Data"])
               : new Date(row["Data"]),
         }));
-
         setSheetData(parsedData);
       } catch (error) {
         if (error.name !== "AbortError") {
@@ -85,44 +119,111 @@ const AnalisiPerFamiglia = () => {
     return () => controller.abort();
   }, []);
 
-  // --- ESTRAZIONE LISTE UNICHE (BONIFICATE) ---
+  // --- LISTE UNICHE ---
   const uniqueAgents = useMemo(() => {
-    if (!sheetData) return ["Tutti gli Agenti"];
-    const agents = [
+    if (!sheetData) return [];
+    return [
       ...new Set(sheetData.map((r) => cleanValue(r["Descrizione Agente"]))),
     ]
       .filter(Boolean)
       .sort();
-    return ["Tutti gli Agenti", ...agents];
   }, [sheetData]);
 
   const uniqueFamiliesList = useMemo(() => {
-    if (!sheetData) return ["Tutte le Famiglie"];
-    const families = [
+    if (!sheetData) return [];
+    return [
       ...new Set(sheetData.map((r) => cleanValue(r["Descrizione Famiglia"]))),
     ]
       .filter(Boolean)
       .sort();
-    return ["Tutte le Famiglie", ...families];
   }, [sheetData]);
 
   const uniqueGroupsList = useMemo(() => {
-    if (!sheetData) return ["Tutti i Gruppi"];
-    let dataForGroups = sheetData;
-    if (selectedFamily !== "Tutte le Famiglie") {
-      dataForGroups = sheetData.filter(
-        (r) => cleanValue(r["Descrizione Famiglia"]) === selectedFamily,
-      );
-    }
-    const groups = [
-      ...new Set(dataForGroups.map((r) => cleanValue(r["Descrizione Gruppo"]))),
-    ]
+    if (!sheetData) return [];
+    const source =
+      selectedFamilies.length > 0
+        ? sheetData.filter((r) =>
+            selectedFamilies.includes(cleanValue(r["Descrizione Famiglia"])),
+          )
+        : sheetData;
+    return [...new Set(source.map((r) => cleanValue(r["Descrizione Gruppo"])))]
       .filter(Boolean)
       .sort();
-    return ["Tutti i Gruppi", ...groups];
-  }, [sheetData, selectedFamily]);
+  }, [sheetData, selectedFamilies]);
 
-  // --- LOGICA DI ELABORAZIONE ---
+  // --- TOGGLE AGENTI ---
+  const toggleAgent = (a) => {
+    setSelectedAgents((prev) =>
+      prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a],
+    );
+  };
+  const toggleAllAgents = () => {
+    if (selectedAgents.length === uniqueAgents.length) {
+      setSelectedAgents([]);
+    } else {
+      setSelectedAgents([...uniqueAgents]);
+    }
+  };
+
+  // --- TOGGLE FAMIGLIE ---
+  const toggleFamily = (f) => {
+    setSelectedFamilies((prev) =>
+      prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f],
+    );
+    setSelectedGroups([]);
+  };
+  const toggleAllFamilies = () => {
+    if (selectedFamilies.length === uniqueFamiliesList.length) {
+      setSelectedFamilies([]);
+      setSelectedGroups([]);
+    } else {
+      setSelectedFamilies([...uniqueFamiliesList]);
+    }
+  };
+
+  // --- TOGGLE GRUPPI ---
+  const toggleGroup = (g) => {
+    setSelectedGroups((prev) =>
+      prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g],
+    );
+  };
+  const toggleAllGroups = () => {
+    if (selectedGroups.length === uniqueGroupsList.length) {
+      setSelectedGroups([]);
+    } else {
+      setSelectedGroups([...uniqueGroupsList]);
+    }
+  };
+
+  const toggleFamilyRow = (nome) => {
+    const next = new Set(openFamilies);
+    next.has(nome) ? next.delete(nome) : next.add(nome);
+    setOpenFamilies(next);
+  };
+
+  // --- LABEL DROPDOWN ---
+  const agentToggleLabel =
+    selectedAgents.length === 0
+      ? "Tutti gli Agenti"
+      : selectedAgents.length === 1
+        ? selectedAgents[0]
+        : `${selectedAgents.length} Agenti`;
+
+  const familyToggleLabel =
+    selectedFamilies.length === 0
+      ? "Tutte le Famiglie"
+      : selectedFamilies.length === 1
+        ? selectedFamilies[0]
+        : `${selectedFamilies.length} Famiglie`;
+
+  const groupToggleLabel =
+    selectedGroups.length === 0
+      ? "Tutti i Gruppi"
+      : selectedGroups.length === 1
+        ? selectedGroups[0]
+        : `${selectedGroups.length} Gruppi`;
+
+  // --- ELABORAZIONE DATI ---
   const { matrix, allAgents, kpis, totalsByAgent } = useMemo(() => {
     if (!sheetData || !Array.isArray(sheetData))
       return {
@@ -140,26 +241,24 @@ const AnalisiPerFamiglia = () => {
       globalAccQ = 0;
 
     sheetData.forEach((row) => {
-      // 1. Bonifica immediata dei nomi per coerenza con i filtri
       const agente = cleanValue(row["Descrizione Agente"]);
       const macro = cleanValue(row["Descrizione Famiglia"]).toUpperCase();
       const sotto = cleanValue(row["Descrizione Gruppo"]).toUpperCase();
 
-      // 2. FILTRI
       if (startDate && endDate) {
         const d = row.DataObj;
         if (!d || d < startDate || d > endDate) return;
       }
-      if (selectedAgent !== "Tutti gli Agenti" && agente !== selectedAgent)
-        return;
+
+      if (selectedAgents.length > 0 && !selectedAgents.includes(agente)) return;
       if (
-        selectedFamily !== "Tutte le Famiglie" &&
-        macro !== selectedFamily.toUpperCase()
+        selectedFamilies.length > 0 &&
+        !selectedFamilies.map((f) => f.toUpperCase()).includes(macro)
       )
         return;
       if (
-        selectedGroup !== "Tutti i Gruppi" &&
-        sotto !== selectedGroup.toUpperCase()
+        selectedGroups.length > 0 &&
+        !selectedGroups.map((g) => g.toUpperCase()).includes(sotto)
       )
         return;
 
@@ -202,45 +301,45 @@ const AnalisiPerFamiglia = () => {
     sheetData,
     startDate,
     endDate,
-    selectedAgent,
-    selectedFamily,
-    selectedGroup,
+    selectedAgents,
+    selectedFamilies,
+    selectedGroups,
   ]);
-
-  const toggleFamily = (nome) => {
-    const next = new Set(openFamilies);
-    next.has(nome) ? next.delete(nome) : next.add(nome);
-    setOpenFamilies(next);
-  };
 
   const resetFilters = () => {
     setStartDate(null);
     setEndDate(null);
-    setSelectedAgent("Tutti gli Agenti");
-    setSelectedFamily("Tutte le Famiglie");
-    setSelectedGroup("Tutti i Gruppi");
+    setSelectedAgents([]);
+    setSelectedFamilies([]);
+    setSelectedGroups([]);
     setSearchTerm("");
   };
+
+  const hasActiveFilters =
+    startDate !== null ||
+    selectedAgents.length > 0 ||
+    selectedFamilies.length > 0 ||
+    selectedGroups.length > 0;
 
   const dynamicCards = [
     {
       id: 1,
       title: "Fatturato Totale",
-      count: `€ ${kpis.globalVal.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      count: fmtEuro(kpis.globalVal),
       svgIcon: <PiMoneyThin />,
       backgroundColor: "primary svg-white",
     },
     {
       id: 2,
       title: "Totale Alluminio",
-      count: `${kpis.globalAlmQ.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kg`,
+      count: fmtQty(kpis.globalAlmQ, "Kg"),
       svgIcon: <PiScalesThin />,
       backgroundColor: "primary3 svg-white",
     },
     {
       id: 3,
       title: "Totale Accessori",
-      count: `${kpis.globalAccQ.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Pz`,
+      count: fmtQty(kpis.globalAccQ, "Pz"),
       svgIcon: <PiPackageThin />,
       backgroundColor: "info svg-white",
     },
@@ -266,67 +365,116 @@ const AnalisiPerFamiglia = () => {
             endDate={endDate}
             onDateChange={handleFlatpickrChange}
           />
+
+          {/* DROPDOWN AGENTI */}
           <SpkDropdown
             toggleas="a"
             Customtoggleclass="btn btn-outline-light btn-sm border text-muted no-caret"
-            Toggletext={selectedAgent}
+            Toggletext={agentToggleLabel}
             Arrowicon={true}
+            autoClose="outside"
           >
             <div
-              className="dropdown-menu-filter"
-              style={{ maxHeight: "250px", overflowY: "auto" }}
+              style={{
+                maxHeight: "250px",
+                overflowY: "auto",
+                minWidth: "220px",
+              }}
             >
+              <MultiSelectItem
+                label="Tutti gli Agenti"
+                bold
+                checked={
+                  uniqueAgents.length > 0 &&
+                  selectedAgents.length === uniqueAgents.length
+                }
+                onToggle={toggleAllAgents}
+              />
+              <Dropdown.Divider className="my-1" />
               {uniqueAgents.map((a) => (
-                <Dropdown.Item key={a} onClick={() => setSelectedAgent(a)}>
-                  {a}
-                </Dropdown.Item>
+                <MultiSelectItem
+                  key={a}
+                  label={a}
+                  checked={selectedAgents.includes(a)}
+                  onToggle={() => toggleAgent(a)}
+                />
               ))}
             </div>
           </SpkDropdown>
+
+          {/* DROPDOWN FAMIGLIE */}
           <SpkDropdown
             toggleas="a"
             Customtoggleclass="btn btn-outline-light btn-sm border text-muted no-caret"
-            Toggletext={selectedFamily}
+            Toggletext={familyToggleLabel}
             Arrowicon={true}
+            autoClose="outside"
           >
             <div
-              className="dropdown-menu-filter"
-              style={{ maxHeight: "250px", overflowY: "auto" }}
+              style={{
+                maxHeight: "250px",
+                overflowY: "auto",
+                minWidth: "220px",
+              }}
             >
+              <MultiSelectItem
+                label="Tutte le Famiglie"
+                bold
+                checked={
+                  uniqueFamiliesList.length > 0 &&
+                  selectedFamilies.length === uniqueFamiliesList.length
+                }
+                onToggle={toggleAllFamilies}
+              />
+              <Dropdown.Divider className="my-1" />
               {uniqueFamiliesList.map((f) => (
-                <Dropdown.Item
+                <MultiSelectItem
                   key={f}
-                  onClick={() => {
-                    setSelectedFamily(f);
-                    setSelectedGroup("Tutti i Gruppi");
-                  }}
-                >
-                  {f}
-                </Dropdown.Item>
+                  label={f}
+                  checked={selectedFamilies.includes(f)}
+                  onToggle={() => toggleFamily(f)}
+                />
               ))}
             </div>
           </SpkDropdown>
+
+          {/* DROPDOWN GRUPPI */}
           <SpkDropdown
             toggleas="a"
             Customtoggleclass="btn btn-outline-light btn-sm border text-muted no-caret"
-            Toggletext={selectedGroup}
+            Toggletext={groupToggleLabel}
             Arrowicon={true}
+            autoClose="outside"
           >
             <div
-              className="dropdown-menu-filter"
-              style={{ maxHeight: "250px", overflowY: "auto" }}
+              style={{
+                maxHeight: "250px",
+                overflowY: "auto",
+                minWidth: "220px",
+              }}
             >
+              <MultiSelectItem
+                label="Tutti i Gruppi"
+                bold
+                checked={
+                  uniqueGroupsList.length > 0 &&
+                  selectedGroups.length === uniqueGroupsList.length
+                }
+                onToggle={toggleAllGroups}
+              />
+              <Dropdown.Divider className="my-1" />
               {uniqueGroupsList.map((g) => (
-                <Dropdown.Item key={g} onClick={() => setSelectedGroup(g)}>
-                  {g}
-                </Dropdown.Item>
+                <MultiSelectItem
+                  key={g}
+                  label={g}
+                  checked={selectedGroups.includes(g)}
+                  onToggle={() => toggleGroup(g)}
+                />
               ))}
             </div>
           </SpkDropdown>
-          {(startDate ||
-            selectedAgent !== "Tutti gli Agenti" ||
-            selectedFamily !== "Tutte le Famiglie" ||
-            selectedGroup !== "Tutti i Gruppi") && (
+
+          {hasActiveFilters && (
             <button
               className="btn btn-danger-light btn-sm btn-icon"
               onClick={resetFilters}
@@ -383,11 +531,12 @@ const AnalisiPerFamiglia = () => {
                     )
                     .map((macro) => (
                       <Fragment key={macro.nome}>
+                        {/* RIGA FAMIGLIA */}
                         <tr
                           className="table-primary-transparent cursor-pointer"
-                          onClick={() => toggleFamily(macro.nome)}
+                          onClick={() => toggleFamilyRow(macro.nome)}
                         >
-                          <th scope="row" className="fw-bold">
+                          <th scope="row" className="fw-bold text-start">
                             <i
                               className={`ri-arrow-${openFamilies.has(macro.nome) ? "down" : "right"}-s-line me-1 text-primary`}
                             ></i>
@@ -396,97 +545,74 @@ const AnalisiPerFamiglia = () => {
                           {allAgents.map((ag) => (
                             <Fragment key={ag}>
                               <td className="text-end fw-bold">
-                                €{" "}
-                                {(macro.agenti[ag]?.v || 0).toLocaleString(
-                                  "it-IT",
-                                  { minimumFractionDigits: 2 },
-                                )}
+                                {fmtEuro(macro.agenti[ag]?.v || 0)}
                               </td>
-                              <td className="text-center fw-bold">
+                              <td className="text-end fw-bold">
                                 {macro.nome.includes("ALLUMINIO") ? (
                                   <SpkBadge variant="primary">
-                                    {(macro.agenti[ag]?.q || 0).toLocaleString(
-                                      "it-IT",
-                                    )}{" "}
-                                    Kg
+                                    {fmtQty(macro.agenti[ag]?.q || 0, "Kg")}
                                   </SpkBadge>
                                 ) : macro.nome.includes("ACCESSORI") ? (
                                   <SpkBadge variant="success">
-                                    {(macro.agenti[ag]?.q || 0).toLocaleString(
-                                      "it-IT",
-                                    )}{" "}
-                                    Pz
+                                    {fmtQty(macro.agenti[ag]?.q || 0, "Pz")}
                                   </SpkBadge>
                                 ) : (
-                                  (macro.agenti[ag]?.q || 0).toLocaleString(
-                                    "it-IT",
-                                  )
+                                  fmtQty(macro.agenti[ag]?.q || 0)
                                 )}
                               </td>
                             </Fragment>
                           ))}
                           <td className="text-end fw-bold text-primary bg-primary-transparent">
-                            €{" "}
-                            {macro.totV.toLocaleString("it-IT", {
-                              minimumFractionDigits: 2,
-                            })}
+                            {fmtEuro(macro.totV)}
                           </td>
                         </tr>
+
+                        {/* RIGHE SOTTOGRUPPO */}
                         {openFamilies.has(macro.nome) &&
                           Object.values(macro.sotto).map((sotto) => (
                             <tr key={sotto.nome}>
                               <td
-                                className="ps-5 text-muted text-uppercase"
+                                className="ps-5 text-muted text-uppercase text-start"
                                 style={{ fontSize: "10px" }}
                               >
+                                <i className="ri-corner-down-right-line me-2"></i>
                                 {sotto.nome}
                               </td>
                               {allAgents.map((ag) => (
                                 <Fragment key={ag}>
                                   <td className="text-end text-muted">
-                                    €{" "}
-                                    {(sotto.agenti[ag]?.v || 0).toLocaleString(
-                                      "it-IT",
-                                      { minimumFractionDigits: 2 },
-                                    )}
+                                    {fmtEuro(sotto.agenti[ag]?.v || 0)}
                                   </td>
-                                  <td className="text-center text-muted">
-                                    {(sotto.agenti[ag]?.q || 0).toLocaleString(
-                                      "it-IT",
-                                    )}
+                                  <td className="text-end text-muted">
+                                    {fmtQty(sotto.agenti[ag]?.q || 0)}
                                   </td>
                                 </Fragment>
                               ))}
                               <td className="text-end text-muted">
-                                €{" "}
-                                {sotto.totV.toLocaleString("it-IT", {
-                                  minimumFractionDigits: 2,
-                                })}
+                                {fmtEuro(sotto.totV)}
                               </td>
                             </tr>
                           ))}
                       </Fragment>
                     ))}
+
+                  {/* TOTALE COMPLESSIVO */}
                   <tr className="table-dark">
-                    <th scope="row">TOTALE COMPLESSIVO</th>
+                    <th scope="row" className="text-start">
+                      TOTALE COMPLESSIVO
+                    </th>
                     {allAgents.map((ag) => (
                       <Fragment key={ag}>
                         <td className="text-end fw-bold">
-                          €{" "}
-                          {totalsByAgent[ag]?.v.toLocaleString("it-IT", {
-                            minimumFractionDigits: 2,
-                          })}
+                          {fmtEuro(totalsByAgent[ag]?.v || 0)}
                         </td>
-                        <td className="text-center fw-bold">
-                          {totalsByAgent[ag]?.q.toLocaleString("it-IT")}
+                        <td className="text-end fw-bold">
+                          {fmtQty(totalsByAgent[ag]?.q || 0)}
                         </td>
                       </Fragment>
                     ))}
                     <td className="text-end fw-bold">
-                      €{" "}
-                      {kpis.globalVal.toLocaleString("it-IT", {
-                        minimumFractionDigits: 2,
-                      })}
+                      {fmtEuro(kpis.globalVal)}
                     </td>
                   </tr>
                 </SpkTablescomponent>
