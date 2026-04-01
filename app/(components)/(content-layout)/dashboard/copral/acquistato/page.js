@@ -12,17 +12,18 @@ import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import { useRouter } from "next/navigation";
 
 // ─── Formattatori ─────────────────────────────────────────────────────────────
-const fmtEuro = (val) =>
-  `€ ${(val || 0).toLocaleString("it-IT", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+const formatNum = (val, decimals = 2) => {
+  const n = Number(val) || 0;
+  const fixed = n.toFixed(decimals);
+  const [intPart, decPart] = fixed.split(".");
+  const intFormatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return decPart !== undefined ? `${intFormatted},${decPart}` : intFormatted;
+};
+
+const fmtEuro = (val) => `€ ${formatNum(val, 2)}`;
 
 const fmtQty = (val, unit = "") =>
-  `${(val || 0).toLocaleString("it-IT", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}${unit ? ` ${unit}` : ""}`;
+  `${formatNum(val, 2)}${unit ? ` ${unit}` : ""}`;
 
 // ─── Componente riga multiselect ──────────────────────────────────────────────
 const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
