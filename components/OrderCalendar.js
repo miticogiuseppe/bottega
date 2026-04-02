@@ -1,4 +1,4 @@
-import { useState, useCallback, Fragment } from "react";
+import { useState, useCallback, Fragment, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import listPlugin from "@fullcalendar/list";
@@ -12,6 +12,8 @@ import { formatDate, formatTime } from "@/utils/format";
 import Spkcardscomponent from "@/shared/@spk-reusable-components/reusable-dashboards/spk-cards";
 import { IoIosCalendar } from "react-icons/io";
 
+const EMPTY_SEARCH = { search: "", selected: null };
+
 const OrderCalendar = ({ data, fileDate }) => {
   const updateCard = {
     id: 1,
@@ -24,23 +26,39 @@ const OrderCalendar = ({ data, fileDate }) => {
   };
 
   const [selectedOrders, setSelectedOrders] = useState([]);
+  const [agentSearch, setAgentSearch] = useState(EMPTY_SEARCH);
+  const [clientSearch, setClientSearch] = useState(EMPTY_SEARCH);
+  const [orderSearch, setOrderSearch] = useState(EMPTY_SEARCH);
+  const [articleSearch, setArticleSearch] = useState(EMPTY_SEARCH);
 
-  const [agentSearch, setAgentSearch] = useState({});
-  const [clientSearch, setClientSearch] = useState({});
-  const [orderSearch, setOrderSearch] = useState({});
-  const [articleSearch, setArticleSearch] = useState({});
+  // ─── Chiavi per forzare il remount dei SearchBox al reset ────────────────
+  const [resetKey, setResetKey] = useState(0);
+
+  const hasActiveFilters =
+    agentSearch.search ||
+    agentSearch.selected ||
+    clientSearch.search ||
+    clientSearch.selected ||
+    orderSearch.search ||
+    orderSearch.selected ||
+    articleSearch.search ||
+    articleSearch.selected;
+
+  const handleReset = () => {
+    setAgentSearch(EMPTY_SEARCH);
+    setClientSearch(EMPTY_SEARCH);
+    setOrderSearch(EMPTY_SEARCH);
+    setArticleSearch(EMPTY_SEARCH);
+    setResetKey((k) => k + 1); // forza remount SearchBox
+  };
 
   const handleEventClick = (info) => {
     const clickedDate = info.event.startStr;
-
     const ordiniGiorno = filteredData.filter((order) => {
-      if (!order["Data Cons."]) return false; // Ignora ordini senza data
-
+      if (!order["Data Cons."]) return false;
       const dataOrd = order["Data Cons."].format("YYYY-MM-DD");
-
       return dataOrd === clickedDate;
     });
-
     setSelectedOrders(
       ordiniGiorno.map((order) => ({
         numOrdine: order["Nr.ord"] ?? "N/A",
@@ -49,28 +67,15 @@ const OrderCalendar = ({ data, fileDate }) => {
         quantità: order["Qta da ev"] ?? "N/A",
         sezione: order.Sez ?? "N/A",
         agente: order["Des. Agente"] ?? "N/A",
-      }))
+      })),
     );
   };
 
-  const handleAgentSearch = useCallback(
-    (data) => setAgentSearch(data),
-    [setAgentSearch]
-  );
-  const handleClientSearch = useCallback(
-    (data) => setClientSearch(data),
-    [setClientSearch]
-  );
-  const handleOrderSearch = useCallback(
-    (data) => setOrderSearch(data),
-    [setOrderSearch]
-  );
-  const handleArticleSearch = useCallback(
-    (data) => setArticleSearch(data),
-    [setArticleSearch]
-  );
+  const handleAgentSearch = useCallback((data) => setAgentSearch(data), []);
+  const handleClientSearch = useCallback((data) => setClientSearch(data), []);
+  const handleOrderSearch = useCallback((data) => setOrderSearch(data), []);
+  const handleArticleSearch = useCallback((data) => setArticleSearch(data), []);
 
-  // calcola ordini filtrati
   function checkRow(row, column, searchData) {
     if (searchData.selected) {
       return String(row[column]) === String(searchData.selected);
@@ -82,6 +87,7 @@ const OrderCalendar = ({ data, fileDate }) => {
       } else return true;
     }
   }
+
   const filteredData = data.filter((order) => {
     const matchAgent = checkRow(order, "Des. Agente", agentSearch);
     const matchClient = checkRow(order, "Ragione sociale", clientSearch);
@@ -90,18 +96,14 @@ const OrderCalendar = ({ data, fileDate }) => {
     return matchAgent && matchClient && matchOrder && matchArticle;
   });
 
-  // raggruppa per "Data Cons.", escludendo ordini senza data
   const eventsByDate = {};
   filteredData.forEach((order) => {
-    if (!order["Data Cons."]) return; // Esclude ordini senza Data Cons.
-
+    if (!order["Data Cons."]) return;
     const data = order["Data Cons."].format("YYYY-MM-DD");
-
     if (!eventsByDate[data]) eventsByDate[data] = [];
     eventsByDate[data].push(order);
   });
 
-  // produce eventi per il calendario
   const formattedEvents = Object.entries(eventsByDate).flatMap(
     ([data, eventi]) => {
       const visibili = eventi.slice(0, 2).map((order) => ({
@@ -116,9 +118,7 @@ const OrderCalendar = ({ data, fileDate }) => {
           articolo: order.Articolo ?? "N/A",
         },
       }));
-
       const nascosti = eventi.length - 2;
-
       const extra =
         nascosti > 0
           ? [
@@ -130,35 +130,39 @@ const OrderCalendar = ({ data, fileDate }) => {
               },
             ]
           : [];
-
       return [...visibili, ...extra];
-    }
+    },
   );
 
   const agents = Array.from(
-    new Set(data.map((o) => String(o["Des. Agente"])).filter(Boolean))
+    new Set(data.map((o) => String(o["Des. Agente"])).filter(Boolean)),
   );
   const clients = Array.from(
-    new Set(data.map((o) => String(o["Ragione sociale"])).filter(Boolean))
+    new Set(data.map((o) => String(o["Ragione sociale"])).filter(Boolean)),
   );
   const orders = Array.from(
-    new Set(data.map((o) => String(o["Nr.ord"])).filter(Boolean))
+    new Set(data.map((o) => String(o["Nr.ord"])).filter(Boolean)),
   );
   const articles = Array.from(
-    new Set(data.map((o) => String(o["Articolo"])).filter(Boolean))
+    new Set(data.map((o) => String(o["Articolo"])).filter(Boolean)),
   );
 
   const filteredAgents = agents.filter(
-    (c) => !c || c.toLowerCase().includes(agentSearch.search.toLowerCase())
+    (c) =>
+      !c || c.toLowerCase().includes((agentSearch.search || "").toLowerCase()),
   );
   const filteredClients = clients.filter(
-    (c) => !c || c.toLowerCase().includes(clientSearch.search.toLowerCase())
+    (c) =>
+      !c || c.toLowerCase().includes((clientSearch.search || "").toLowerCase()),
   );
   const filteredOrders = orders.filter(
-    (n) => !n || n.toLowerCase().includes(orderSearch.search.toLowerCase())
+    (n) =>
+      !n || n.toLowerCase().includes((orderSearch.search || "").toLowerCase()),
   );
   const filteredArticles = articles.filter(
-    (a) => !a || a.toLowerCase().includes(articleSearch.search.toLowerCase())
+    (a) =>
+      !a ||
+      a.toLowerCase().includes((articleSearch.search || "").toLowerCase()),
   );
 
   return (
@@ -187,48 +191,59 @@ const OrderCalendar = ({ data, fileDate }) => {
               <span className="sc-title">Calendario consegne</span>
             </Card.Header>
             <Card.Body>
-              {/* FILTRI ORIZZONTALI */}
+              {/* FILTRI ORIZZONTALI + TASTO RESET */}
               <div
-                className="spacing"
+                className="spacing mb-3"
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
+                  gridTemplateColumns: "repeat(4, 1fr) auto",
                   gap: "20px",
                   width: "100%",
-                  alignItems: "start",
+                  alignItems: "end",
                 }}
               >
-                {/* AGENTE */}
                 <SearchBox
+                  key={`agent-${resetKey}`}
                   data={filteredAgents}
                   name="Agente"
                   placeholder="Cerca agente..."
                   onSearch={handleAgentSearch}
                 />
-
-                {/* CLIENTE */}
                 <SearchBox
+                  key={`client-${resetKey}`}
                   data={filteredClients}
                   name="Cliente"
                   placeholder="Cerca cliente..."
                   onSearch={handleClientSearch}
                 />
-
-                {/* NUM. ORDINE */}
                 <SearchBox
+                  key={`order-${resetKey}`}
                   data={filteredOrders}
                   name="N.Ordine"
                   placeholder="Cerca numero ordine..."
                   onSearch={handleOrderSearch}
                 />
-
-                {/* ARTICOLO */}
                 <SearchBox
+                  key={`article-${resetKey}`}
                   data={filteredArticles}
                   name="Articolo"
                   placeholder="Cerca articolo..."
                   onSearch={handleArticleSearch}
                 />
+
+                {/* TASTO RESET */}
+                {hasActiveFilters ? (
+                  <button
+                    className="btn btn-danger-light btn-sm btn-icon"
+                    onClick={handleReset}
+                    title="Reset filtri"
+                    style={{ height: "38px", alignSelf: "end" }}
+                  >
+                    <i className="ti ti-refresh"></i>
+                  </button>
+                ) : (
+                  <div /> // placeholder per mantenere il grid
+                )}
               </div>
 
               <FullCalendar
@@ -243,10 +258,9 @@ const OrderCalendar = ({ data, fileDate }) => {
         </Col>
       </Row>
 
-      {/* Gestione del modal con chiusura funzionante */}
       <OrderListModal
         orders={selectedOrders}
-        onClose={() => setSelectedOrders([])} // qui la funzione di chiusura
+        onClose={() => setSelectedOrders([])}
       />
     </Fragment>
   );

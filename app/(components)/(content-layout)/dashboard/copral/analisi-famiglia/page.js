@@ -22,7 +22,6 @@ const formatNum = (val, decimals = 2) => {
 };
 
 const fmtEuro = (val) => `€ ${formatNum(val, 2)}`;
-
 const fmtQty = (val, unit = "") =>
   `${formatNum(val, 2)}${unit ? ` ${unit}` : ""}`;
 
@@ -53,6 +52,22 @@ const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
   </Dropdown.Item>
 );
 
+// ─── Barra di ricerca interna al dropdown ─────────────────────────────────────
+const DropdownSearch = ({ value, onChange, placeholder = "Cerca..." }) => (
+  <div className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+    <Form.Control
+      type="text"
+      size="sm"
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      autoComplete="off"
+    />
+  </div>
+);
+
 const AnalisiPerFamiglia = () => {
   const [sheetData, setSheetData] = useState(undefined);
   const [isFetching, setIsFetching] = useState(true);
@@ -64,6 +79,13 @@ const AnalisiPerFamiglia = () => {
   const [selectedAgents, setSelectedAgents] = useState([]);
   const [selectedFamilies, setSelectedFamilies] = useState([]);
   const [selectedGroups, setSelectedGroups] = useState([]);
+  const [selectedYears, setSelectedYears] = useState([]);
+
+  // ─── Ricerche interne ai dropdown ────────────────────────────────────────
+  const [agentSearch, setAgentSearch] = useState("");
+  const [familySearch, setFamilySearch] = useState("");
+  const [groupSearch, setGroupSearch] = useState("");
+  const [yearSearch, setYearSearch] = useState("");
 
   const cleanValue = (val) => {
     const s = String(val || "").trim();
@@ -120,7 +142,19 @@ const AnalisiPerFamiglia = () => {
     return () => controller.abort();
   }, []);
 
-  // --- LISTE UNICHE ---
+  // ─── Anni disponibili ─────────────────────────────────────────────────────
+  const uniqueYears = useMemo(() => {
+    if (!sheetData?.length) return [];
+    return [
+      ...new Set(
+        sheetData
+          .map((r) => r.DataObj?.getFullYear())
+          .filter((y) => y !== undefined && y !== null && !isNaN(y)),
+      ),
+    ].sort((a, b) => b - a);
+  }, [sheetData]);
+
+  // ─── Liste uniche ─────────────────────────────────────────────────────────
   const uniqueAgents = useMemo(() => {
     if (!sheetData) return [];
     return [
@@ -152,47 +186,89 @@ const AnalisiPerFamiglia = () => {
       .sort();
   }, [sheetData, selectedFamilies]);
 
-  // --- TOGGLE AGENTI ---
+  // ─── Liste filtrate per ricerca interna ───────────────────────────────────
+  const filteredAgentsList = useMemo(() => {
+    if (!agentSearch) return uniqueAgents;
+    const t = agentSearch.toLowerCase();
+    return uniqueAgents.filter((a) => a.toLowerCase().includes(t));
+  }, [uniqueAgents, agentSearch]);
+
+  const filteredFamiliesList = useMemo(() => {
+    if (!familySearch) return uniqueFamiliesList;
+    const t = familySearch.toLowerCase();
+    return uniqueFamiliesList.filter((f) => f.toLowerCase().includes(t));
+  }, [uniqueFamiliesList, familySearch]);
+
+  const filteredGroupsList = useMemo(() => {
+    if (!groupSearch) return uniqueGroupsList;
+    const t = groupSearch.toLowerCase();
+    return uniqueGroupsList.filter((g) => g.toLowerCase().includes(t));
+  }, [uniqueGroupsList, groupSearch]);
+
+  const filteredYearsList = useMemo(() => {
+    if (!yearSearch) return uniqueYears;
+    return uniqueYears.filter((y) => String(y).includes(yearSearch.trim()));
+  }, [uniqueYears, yearSearch]);
+
+  // ─── Toggle agenti ────────────────────────────────────────────────────────
   const toggleAgent = (a) => {
     setSelectedAgents((prev) =>
       prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a],
     );
   };
-  const toggleAllAgents = () => {
-    if (selectedAgents.length === uniqueAgents.length) {
-      setSelectedAgents([]);
+  const toggleAllAgents = (filtered) => {
+    const allSelected = filtered.every((a) => selectedAgents.includes(a));
+    if (allSelected) {
+      setSelectedAgents((prev) => prev.filter((x) => !filtered.includes(x)));
     } else {
-      setSelectedAgents([...uniqueAgents]);
+      setSelectedAgents((prev) => [...new Set([...prev, ...filtered])]);
     }
   };
 
-  // --- TOGGLE FAMIGLIE ---
+  // ─── Toggle famiglie ──────────────────────────────────────────────────────
   const toggleFamily = (f) => {
     setSelectedFamilies((prev) =>
       prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f],
     );
     setSelectedGroups([]);
   };
-  const toggleAllFamilies = () => {
-    if (selectedFamilies.length === uniqueFamiliesList.length) {
-      setSelectedFamilies([]);
+  const toggleAllFamilies = (filtered) => {
+    const allSelected = filtered.every((f) => selectedFamilies.includes(f));
+    if (allSelected) {
+      setSelectedFamilies((prev) => prev.filter((x) => !filtered.includes(x)));
       setSelectedGroups([]);
     } else {
-      setSelectedFamilies([...uniqueFamiliesList]);
+      setSelectedFamilies((prev) => [...new Set([...prev, ...filtered])]);
     }
   };
 
-  // --- TOGGLE GRUPPI ---
+  // ─── Toggle gruppi ────────────────────────────────────────────────────────
   const toggleGroup = (g) => {
     setSelectedGroups((prev) =>
       prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g],
     );
   };
-  const toggleAllGroups = () => {
-    if (selectedGroups.length === uniqueGroupsList.length) {
-      setSelectedGroups([]);
+  const toggleAllGroups = (filtered) => {
+    const allSelected = filtered.every((g) => selectedGroups.includes(g));
+    if (allSelected) {
+      setSelectedGroups((prev) => prev.filter((x) => !filtered.includes(x)));
     } else {
-      setSelectedGroups([...uniqueGroupsList]);
+      setSelectedGroups((prev) => [...new Set([...prev, ...filtered])]);
+    }
+  };
+
+  // ─── Toggle anni ──────────────────────────────────────────────────────────
+  const toggleYear = (y) => {
+    setSelectedYears((prev) =>
+      prev.includes(y) ? prev.filter((x) => x !== y) : [...prev, y],
+    );
+  };
+  const toggleAllYears = (filtered) => {
+    const allSelected = filtered.every((y) => selectedYears.includes(y));
+    if (allSelected) {
+      setSelectedYears((prev) => prev.filter((x) => !filtered.includes(x)));
+    } else {
+      setSelectedYears((prev) => [...new Set([...prev, ...filtered])]);
     }
   };
 
@@ -202,7 +278,7 @@ const AnalisiPerFamiglia = () => {
     setOpenFamilies(next);
   };
 
-  // --- LABEL DROPDOWN ---
+  // ─── Label dropdown ───────────────────────────────────────────────────────
   const agentToggleLabel =
     selectedAgents.length === 0
       ? "Tutti gli Agenti"
@@ -224,7 +300,14 @@ const AnalisiPerFamiglia = () => {
         ? selectedGroups[0]
         : `${selectedGroups.length} Gruppi`;
 
-  // --- ELABORAZIONE DATI ---
+  const yearToggleLabel =
+    selectedYears.length === 0
+      ? "Tutti gli Anni"
+      : selectedYears.length === 1
+        ? String(selectedYears[0])
+        : `${selectedYears.length} Anni`;
+
+  // ─── Elaborazione dati ────────────────────────────────────────────────────
   const { matrix, allAgents, kpis, totalsByAgent } = useMemo(() => {
     if (!sheetData || !Array.isArray(sheetData))
       return {
@@ -246,9 +329,16 @@ const AnalisiPerFamiglia = () => {
       const macro = cleanValue(row["Descrizione Famiglia"]).toUpperCase();
       const sotto = cleanValue(row["Descrizione Gruppo"]).toUpperCase();
 
+      // ── Filtro intervallo date ──
       if (startDate && endDate) {
         const d = row.DataObj;
         if (!d || d < startDate || d > endDate) return;
+      }
+
+      // ── Filtro anno ──
+      if (selectedYears.length > 0) {
+        const yr = row.DataObj?.getFullYear();
+        if (!selectedYears.includes(yr)) return;
       }
 
       if (selectedAgents.length > 0 && !selectedAgents.includes(agente)) return;
@@ -305,6 +395,7 @@ const AnalisiPerFamiglia = () => {
     selectedAgents,
     selectedFamilies,
     selectedGroups,
+    selectedYears,
   ]);
 
   const resetFilters = () => {
@@ -313,14 +404,20 @@ const AnalisiPerFamiglia = () => {
     setSelectedAgents([]);
     setSelectedFamilies([]);
     setSelectedGroups([]);
+    setSelectedYears([]);
     setSearchTerm("");
+    setAgentSearch("");
+    setFamilySearch("");
+    setGroupSearch("");
+    setYearSearch("");
   };
 
   const hasActiveFilters =
     startDate !== null ||
     selectedAgents.length > 0 ||
     selectedFamilies.length > 0 ||
-    selectedGroups.length > 0;
+    selectedGroups.length > 0 ||
+    selectedYears.length > 0;
 
   const dynamicCards = [
     {
@@ -367,6 +464,50 @@ const AnalisiPerFamiglia = () => {
             onDateChange={handleFlatpickrChange}
           />
 
+          {/* DROPDOWN ANNO */}
+          <SpkDropdown
+            toggleas="a"
+            Customtoggleclass="btn btn-outline-light btn-sm border text-muted no-caret"
+            Toggletext={yearToggleLabel}
+            Arrowicon={true}
+            autoClose="outside"
+          >
+            <div style={{ minWidth: "180px" }}>
+              <DropdownSearch
+                value={yearSearch}
+                onChange={setYearSearch}
+                placeholder="Cerca anno..."
+              />
+              <Dropdown.Divider className="my-1" />
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+                <MultiSelectItem
+                  label="Tutti gli Anni"
+                  bold
+                  checked={
+                    filteredYearsList.length > 0 &&
+                    filteredYearsList.every((y) => selectedYears.includes(y))
+                  }
+                  onToggle={() => toggleAllYears(filteredYearsList)}
+                />
+                <Dropdown.Divider className="my-1" />
+                {filteredYearsList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredYearsList.map((y) => (
+                    <MultiSelectItem
+                      key={y}
+                      label={String(y)}
+                      checked={selectedYears.includes(y)}
+                      onToggle={() => toggleYear(y)}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          </SpkDropdown>
+
           {/* DROPDOWN AGENTI */}
           <SpkDropdown
             toggleas="a"
@@ -375,31 +516,39 @@ const AnalisiPerFamiglia = () => {
             Arrowicon={true}
             autoClose="outside"
           >
-            <div
-              style={{
-                maxHeight: "250px",
-                overflowY: "auto",
-                minWidth: "220px",
-              }}
-            >
-              <MultiSelectItem
-                label="Tutti gli Agenti"
-                bold
-                checked={
-                  uniqueAgents.length > 0 &&
-                  selectedAgents.length === uniqueAgents.length
-                }
-                onToggle={toggleAllAgents}
+            <div style={{ minWidth: "220px" }}>
+              <DropdownSearch
+                value={agentSearch}
+                onChange={setAgentSearch}
+                placeholder="Cerca agente..."
               />
               <Dropdown.Divider className="my-1" />
-              {uniqueAgents.map((a) => (
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                 <MultiSelectItem
-                  key={a}
-                  label={a}
-                  checked={selectedAgents.includes(a)}
-                  onToggle={() => toggleAgent(a)}
+                  label="Tutti gli Agenti"
+                  bold
+                  checked={
+                    filteredAgentsList.length > 0 &&
+                    filteredAgentsList.every((a) => selectedAgents.includes(a))
+                  }
+                  onToggle={() => toggleAllAgents(filteredAgentsList)}
                 />
-              ))}
+                <Dropdown.Divider className="my-1" />
+                {filteredAgentsList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredAgentsList.map((a) => (
+                    <MultiSelectItem
+                      key={a}
+                      label={a}
+                      checked={selectedAgents.includes(a)}
+                      onToggle={() => toggleAgent(a)}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </SpkDropdown>
 
@@ -411,31 +560,41 @@ const AnalisiPerFamiglia = () => {
             Arrowicon={true}
             autoClose="outside"
           >
-            <div
-              style={{
-                maxHeight: "250px",
-                overflowY: "auto",
-                minWidth: "220px",
-              }}
-            >
-              <MultiSelectItem
-                label="Tutte le Famiglie"
-                bold
-                checked={
-                  uniqueFamiliesList.length > 0 &&
-                  selectedFamilies.length === uniqueFamiliesList.length
-                }
-                onToggle={toggleAllFamilies}
+            <div style={{ minWidth: "220px" }}>
+              <DropdownSearch
+                value={familySearch}
+                onChange={setFamilySearch}
+                placeholder="Cerca famiglia..."
               />
               <Dropdown.Divider className="my-1" />
-              {uniqueFamiliesList.map((f) => (
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                 <MultiSelectItem
-                  key={f}
-                  label={f}
-                  checked={selectedFamilies.includes(f)}
-                  onToggle={() => toggleFamily(f)}
+                  label="Tutte le Famiglie"
+                  bold
+                  checked={
+                    filteredFamiliesList.length > 0 &&
+                    filteredFamiliesList.every((f) =>
+                      selectedFamilies.includes(f),
+                    )
+                  }
+                  onToggle={() => toggleAllFamilies(filteredFamiliesList)}
                 />
-              ))}
+                <Dropdown.Divider className="my-1" />
+                {filteredFamiliesList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredFamiliesList.map((f) => (
+                    <MultiSelectItem
+                      key={f}
+                      label={f}
+                      checked={selectedFamilies.includes(f)}
+                      onToggle={() => toggleFamily(f)}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </SpkDropdown>
 
@@ -447,31 +606,39 @@ const AnalisiPerFamiglia = () => {
             Arrowicon={true}
             autoClose="outside"
           >
-            <div
-              style={{
-                maxHeight: "250px",
-                overflowY: "auto",
-                minWidth: "220px",
-              }}
-            >
-              <MultiSelectItem
-                label="Tutti i Gruppi"
-                bold
-                checked={
-                  uniqueGroupsList.length > 0 &&
-                  selectedGroups.length === uniqueGroupsList.length
-                }
-                onToggle={toggleAllGroups}
+            <div style={{ minWidth: "220px" }}>
+              <DropdownSearch
+                value={groupSearch}
+                onChange={setGroupSearch}
+                placeholder="Cerca gruppo..."
               />
               <Dropdown.Divider className="my-1" />
-              {uniqueGroupsList.map((g) => (
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                 <MultiSelectItem
-                  key={g}
-                  label={g}
-                  checked={selectedGroups.includes(g)}
-                  onToggle={() => toggleGroup(g)}
+                  label="Tutti i Gruppi"
+                  bold
+                  checked={
+                    filteredGroupsList.length > 0 &&
+                    filteredGroupsList.every((g) => selectedGroups.includes(g))
+                  }
+                  onToggle={() => toggleAllGroups(filteredGroupsList)}
                 />
-              ))}
+                <Dropdown.Divider className="my-1" />
+                {filteredGroupsList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredGroupsList.map((g) => (
+                    <MultiSelectItem
+                      key={g}
+                      label={g}
+                      checked={selectedGroups.includes(g)}
+                      onToggle={() => toggleGroup(g)}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </SpkDropdown>
 
@@ -539,7 +706,9 @@ const AnalisiPerFamiglia = () => {
                         >
                           <th scope="row" className="fw-bold text-start">
                             <i
-                              className={`ri-arrow-${openFamilies.has(macro.nome) ? "down" : "right"}-s-line me-1 text-primary`}
+                              className={`ri-arrow-${
+                                openFamilies.has(macro.nome) ? "down" : "right"
+                              }-s-line me-1 text-primary`}
                             ></i>
                             {macro.nome}
                           </th>

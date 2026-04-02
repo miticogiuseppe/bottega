@@ -21,7 +21,6 @@ const formatNum = (val, decimals = 2) => {
 };
 
 const fmtEuro = (val) => `€ ${formatNum(val, 2)}`;
-
 const fmtQty = (val, unit = "") =>
   `${formatNum(val, 2)}${unit ? ` ${unit}` : ""}`;
 
@@ -52,6 +51,22 @@ const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
   </Dropdown.Item>
 );
 
+// ─── Barra di ricerca interna al dropdown ─────────────────────────────────────
+const DropdownSearch = ({ value, onChange, placeholder = "Cerca..." }) => (
+  <div className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+    <Form.Control
+      type="text"
+      size="sm"
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      autoComplete="off"
+    />
+  </div>
+);
+
 const AcquistatoPage = () => {
   const router = useRouter();
 
@@ -67,6 +82,12 @@ const AcquistatoPage = () => {
 
   const [selectedSuppliers, setSelectedSuppliers] = useState([]);
   const [selectedFamilies, setSelectedFamilies] = useState([]);
+  const [selectedYears, setSelectedYears] = useState([]);
+
+  // ─── Ricerche interne ai dropdown ────────────────────────────────────────
+  const [supplierSearch, setSupplierSearch] = useState("");
+  const [familySearch, setFamilySearch] = useState("");
+  const [yearSearch, setYearSearch] = useState("");
 
   // ─── Utils ────────────────────────────────────────────────────────────────
   const cleanValue = (val) => {
@@ -106,11 +127,12 @@ const AcquistatoPage = () => {
     );
   };
 
-  const toggleAllSuppliers = () => {
-    if (selectedSuppliers.length === uniqueSuppliers.length) {
-      setSelectedSuppliers([]);
+  const toggleAllSuppliers = (filtered) => {
+    const allSelected = filtered.every((s) => selectedSuppliers.includes(s));
+    if (allSelected) {
+      setSelectedSuppliers((prev) => prev.filter((x) => !filtered.includes(x)));
     } else {
-      setSelectedSuppliers([...uniqueSuppliers]);
+      setSelectedSuppliers((prev) => [...new Set([...prev, ...filtered])]);
     }
   };
 
@@ -121,11 +143,28 @@ const AcquistatoPage = () => {
     );
   };
 
-  const toggleAllFamilies = () => {
-    if (selectedFamilies.length === uniqueFamiliesList.length) {
-      setSelectedFamilies([]);
+  const toggleAllFamilies = (filtered) => {
+    const allSelected = filtered.every((f) => selectedFamilies.includes(f));
+    if (allSelected) {
+      setSelectedFamilies((prev) => prev.filter((x) => !filtered.includes(x)));
     } else {
-      setSelectedFamilies([...uniqueFamiliesList]);
+      setSelectedFamilies((prev) => [...new Set([...prev, ...filtered])]);
+    }
+  };
+
+  // ─── Toggle anno ──────────────────────────────────────────────────────────
+  const toggleYear = (y) => {
+    setSelectedYears((prev) =>
+      prev.includes(y) ? prev.filter((x) => x !== y) : [...prev, y],
+    );
+  };
+
+  const toggleAllYears = (filtered) => {
+    const allSelected = filtered.every((y) => selectedYears.includes(y));
+    if (allSelected) {
+      setSelectedYears((prev) => prev.filter((x) => !filtered.includes(x)));
+    } else {
+      setSelectedYears((prev) => [...new Set([...prev, ...filtered])]);
     }
   };
 
@@ -176,6 +215,19 @@ const AcquistatoPage = () => {
     init();
   }, [router]);
 
+  // ─── Anni disponibili ─────────────────────────────────────────────────────
+  const uniqueYears = useMemo(() => {
+    if (!sheetData?.length) return [];
+    const years = [
+      ...new Set(
+        sheetData
+          .map((r) => r.DataObj?.getFullYear())
+          .filter((y) => y !== undefined && y !== null && !isNaN(y)),
+      ),
+    ].sort((a, b) => b - a);
+    return years;
+  }, [sheetData]);
+
   // ─── Dropdown dinamici ────────────────────────────────────────────────────
   const uniqueSuppliers = useMemo(() => {
     if (!sheetData?.length) return [];
@@ -202,6 +254,24 @@ const AcquistatoPage = () => {
     return [...sorted, ...tail];
   }, [sheetData]);
 
+  // ─── Liste filtrate per ricerca interna ───────────────────────────────────
+  const filteredSuppliersList = useMemo(() => {
+    if (!supplierSearch) return uniqueSuppliers;
+    const t = supplierSearch.toLowerCase();
+    return uniqueSuppliers.filter((s) => s.toLowerCase().includes(t));
+  }, [uniqueSuppliers, supplierSearch]);
+
+  const filteredFamiliesList = useMemo(() => {
+    if (!familySearch) return uniqueFamiliesList;
+    const t = familySearch.toLowerCase();
+    return uniqueFamiliesList.filter((f) => f.toLowerCase().includes(t));
+  }, [uniqueFamiliesList, familySearch]);
+
+  const filteredYearsList = useMemo(() => {
+    if (!yearSearch) return uniqueYears;
+    return uniqueYears.filter((y) => String(y).includes(yearSearch.trim()));
+  }, [uniqueYears, yearSearch]);
+
   // ─── Label toggle ─────────────────────────────────────────────────────────
   const supplierToggleLabel =
     selectedSuppliers.length === 0
@@ -216,6 +286,13 @@ const AcquistatoPage = () => {
       : selectedFamilies.length === 1
         ? selectedFamilies[0]
         : `${selectedFamilies.length} Famiglie`;
+
+  const yearToggleLabel =
+    selectedYears.length === 0
+      ? "Tutti gli Anni"
+      : selectedYears.length === 1
+        ? String(selectedYears[0])
+        : `${selectedYears.length} Anni`;
 
   // ─── Aggregazione dati ────────────────────────────────────────────────────
   const { matrixData, kpis } = useMemo(() => {
@@ -239,9 +316,16 @@ const AcquistatoPage = () => {
       const fornitoreNome = cleanValue(row["Descrizione Cliente/Fornitore"]);
       const famRaw = cleanValue(row["Descrizione Famiglia"]);
 
+      // ── Filtro per intervallo date ──
       if (start && end) {
         const d = row.DataObj;
         if (!d || d < start || d > end) return;
+      }
+
+      // ── Filtro per anno ──
+      if (selectedYears.length > 0) {
+        const yr = row.DataObj?.getFullYear();
+        if (!selectedYears.includes(yr)) return;
       }
 
       if (
@@ -294,9 +378,16 @@ const AcquistatoPage = () => {
       }),
       kpis: { globalVal, globalAlmQ, globalAccQ },
     };
-  }, [sheetData, startDate, endDate, selectedSuppliers, selectedFamilies]);
+  }, [
+    sheetData,
+    startDate,
+    endDate,
+    selectedSuppliers,
+    selectedFamilies,
+    selectedYears,
+  ]);
 
-  // ─── Ricerca ──────────────────────────────────────────────────────────────
+  // ─── Ricerca tabella ──────────────────────────────────────────────────────
   const filteredData = useMemo(() => {
     if (!searchTerm) return matrixData;
     const t = searchTerm.toLowerCase();
@@ -326,7 +417,8 @@ const AcquistatoPage = () => {
   const hasActiveFilters =
     startDate !== null ||
     selectedSuppliers.length > 0 ||
-    selectedFamilies.length > 0;
+    selectedFamilies.length > 0 ||
+    selectedYears.length > 0;
 
   const dynamicCards = [
     {
@@ -371,6 +463,50 @@ const AcquistatoPage = () => {
             onDateChange={handleFlatpickrChange}
           />
 
+          {/* DROPDOWN ANNO */}
+          <SpkDropdown
+            toggleas="a"
+            Customtoggleclass="btn btn-outline-light btn-sm border text-muted no-caret"
+            Toggletext={yearToggleLabel}
+            Arrowicon={true}
+            autoClose="outside"
+          >
+            <div style={{ minWidth: "180px" }}>
+              <DropdownSearch
+                value={yearSearch}
+                onChange={setYearSearch}
+                placeholder="Cerca anno..."
+              />
+              <Dropdown.Divider className="my-1" />
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+                <MultiSelectItem
+                  label="Tutti gli Anni"
+                  bold
+                  checked={
+                    filteredYearsList.length > 0 &&
+                    filteredYearsList.every((y) => selectedYears.includes(y))
+                  }
+                  onToggle={() => toggleAllYears(filteredYearsList)}
+                />
+                <Dropdown.Divider className="my-1" />
+                {filteredYearsList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredYearsList.map((y) => (
+                    <MultiSelectItem
+                      key={y}
+                      label={String(y)}
+                      checked={selectedYears.includes(y)}
+                      onToggle={() => toggleYear(y)}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          </SpkDropdown>
+
           {/* DROPDOWN FORNITORI */}
           <SpkDropdown
             toggleas="a"
@@ -379,31 +515,41 @@ const AcquistatoPage = () => {
             Arrowicon={true}
             autoClose="outside"
           >
-            <div
-              style={{
-                maxHeight: "250px",
-                overflowY: "auto",
-                minWidth: "260px",
-              }}
-            >
-              <MultiSelectItem
-                label="Tutti i Fornitori"
-                bold
-                checked={
-                  uniqueSuppliers.length > 0 &&
-                  selectedSuppliers.length === uniqueSuppliers.length
-                }
-                onToggle={toggleAllSuppliers}
+            <div style={{ minWidth: "260px" }}>
+              <DropdownSearch
+                value={supplierSearch}
+                onChange={setSupplierSearch}
+                placeholder="Cerca fornitore..."
               />
               <Dropdown.Divider className="my-1" />
-              {uniqueSuppliers.map((s) => (
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                 <MultiSelectItem
-                  key={s}
-                  label={s}
-                  checked={selectedSuppliers.includes(s)}
-                  onToggle={() => toggleSupplier(s)}
+                  label="Tutti i Fornitori"
+                  bold
+                  checked={
+                    filteredSuppliersList.length > 0 &&
+                    filteredSuppliersList.every((s) =>
+                      selectedSuppliers.includes(s),
+                    )
+                  }
+                  onToggle={() => toggleAllSuppliers(filteredSuppliersList)}
                 />
-              ))}
+                <Dropdown.Divider className="my-1" />
+                {filteredSuppliersList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredSuppliersList.map((s) => (
+                    <MultiSelectItem
+                      key={s}
+                      label={s}
+                      checked={selectedSuppliers.includes(s)}
+                      onToggle={() => toggleSupplier(s)}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </SpkDropdown>
 
@@ -415,31 +561,41 @@ const AcquistatoPage = () => {
             Arrowicon={true}
             autoClose="outside"
           >
-            <div
-              style={{
-                maxHeight: "250px",
-                overflowY: "auto",
-                minWidth: "220px",
-              }}
-            >
-              <MultiSelectItem
-                label="Tutte le Famiglie"
-                bold
-                checked={
-                  uniqueFamiliesList.length > 0 &&
-                  selectedFamilies.length === uniqueFamiliesList.length
-                }
-                onToggle={toggleAllFamilies}
+            <div style={{ minWidth: "220px" }}>
+              <DropdownSearch
+                value={familySearch}
+                onChange={setFamilySearch}
+                placeholder="Cerca famiglia..."
               />
               <Dropdown.Divider className="my-1" />
-              {uniqueFamiliesList.map((f) => (
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                 <MultiSelectItem
-                  key={f}
-                  label={f}
-                  checked={selectedFamilies.includes(f)}
-                  onToggle={() => toggleFamilyFilter(f)}
+                  label="Tutte le Famiglie"
+                  bold
+                  checked={
+                    filteredFamiliesList.length > 0 &&
+                    filteredFamiliesList.every((f) =>
+                      selectedFamilies.includes(f),
+                    )
+                  }
+                  onToggle={() => toggleAllFamilies(filteredFamiliesList)}
                 />
-              ))}
+                <Dropdown.Divider className="my-1" />
+                {filteredFamiliesList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredFamiliesList.map((f) => (
+                    <MultiSelectItem
+                      key={f}
+                      label={f}
+                      checked={selectedFamilies.includes(f)}
+                      onToggle={() => toggleFamilyFilter(f)}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </SpkDropdown>
 
@@ -452,6 +608,10 @@ const AcquistatoPage = () => {
                 setEndDate(null);
                 setSelectedSuppliers([]);
                 setSelectedFamilies([]);
+                setSelectedYears([]);
+                setSupplierSearch("");
+                setFamilySearch("");
+                setYearSearch("");
               }}
               title="Reset filtri"
             >

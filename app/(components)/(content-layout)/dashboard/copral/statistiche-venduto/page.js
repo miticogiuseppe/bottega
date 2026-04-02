@@ -21,7 +21,6 @@ const formatNum = (val, decimals = 2) => {
 };
 
 const fmtEuro = (val) => `€ ${formatNum(val, 2)}`;
-
 const fmtQty = (val, unit = "") =>
   `${formatNum(val, 2)}${unit ? ` ${unit}` : ""}`;
 
@@ -52,6 +51,22 @@ const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
   </Dropdown.Item>
 );
 
+// ─── Barra di ricerca interna al dropdown ─────────────────────────────────────
+const DropdownSearch = ({ value, onChange, placeholder = "Cerca..." }) => (
+  <div className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+    <Form.Control
+      type="text"
+      size="sm"
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      autoComplete="off"
+    />
+  </div>
+);
+
 const StatisticheVendutoCopral = () => {
   const [sheetData, setSheetData] = useState(undefined);
   const [isFetching, setIsFetching] = useState(true);
@@ -63,6 +78,13 @@ const StatisticheVendutoCopral = () => {
   const [selectedAgents, setSelectedAgents] = useState([]);
   const [selectedFamilies, setSelectedFamilies] = useState([]);
   const [selectedCustomers, setSelectedCustomers] = useState([]);
+  const [selectedYears, setSelectedYears] = useState([]);
+
+  // ─── Ricerche interne ai dropdown ────────────────────────────────────────
+  const [agentSearch, setAgentSearch] = useState("");
+  const [familySearch, setFamilySearch] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [yearSearch, setYearSearch] = useState("");
 
   const cleanValue = (val) => {
     const s = String(val || "").trim();
@@ -120,6 +142,18 @@ const StatisticheVendutoCopral = () => {
     return () => controller.abort();
   }, []);
 
+  // ─── Anni disponibili ─────────────────────────────────────────────────────
+  const uniqueYears = useMemo(() => {
+    if (!sheetData?.length) return [];
+    return [
+      ...new Set(
+        sheetData
+          .map((r) => r.DataObj?.getFullYear())
+          .filter((y) => y !== undefined && y !== null && !isNaN(y)),
+      ),
+    ].sort((a, b) => b - a);
+  }, [sheetData]);
+
   // ─── Liste uniche ─────────────────────────────────────────────────────────
   const uniqueAgents = useMemo(() => {
     if (!sheetData) return [];
@@ -156,17 +190,57 @@ const StatisticheVendutoCopral = () => {
       .sort();
   }, [sheetData, selectedAgents]);
 
+  // ─── Liste filtrate per ricerca interna ───────────────────────────────────
+  const filteredYearsList = useMemo(() => {
+    if (!yearSearch) return uniqueYears;
+    return uniqueYears.filter((y) => String(y).includes(yearSearch.trim()));
+  }, [uniqueYears, yearSearch]);
+
+  const filteredAgentsList = useMemo(() => {
+    if (!agentSearch) return uniqueAgents;
+    const t = agentSearch.toLowerCase();
+    return uniqueAgents.filter((a) => a.toLowerCase().includes(t));
+  }, [uniqueAgents, agentSearch]);
+
+  const filteredFamiliesList = useMemo(() => {
+    if (!familySearch) return uniqueFamiliesList;
+    const t = familySearch.toLowerCase();
+    return uniqueFamiliesList.filter((f) => f.toLowerCase().includes(t));
+  }, [uniqueFamiliesList, familySearch]);
+
+  const filteredCustomersList = useMemo(() => {
+    if (!customerSearch) return uniqueCustomers;
+    const t = customerSearch.toLowerCase();
+    return uniqueCustomers.filter((c) => c.toLowerCase().includes(t));
+  }, [uniqueCustomers, customerSearch]);
+
+  // ─── Toggle anni ──────────────────────────────────────────────────────────
+  const toggleYear = (y) => {
+    setSelectedYears((prev) =>
+      prev.includes(y) ? prev.filter((x) => x !== y) : [...prev, y],
+    );
+  };
+  const toggleAllYears = (filtered) => {
+    const allSelected = filtered.every((y) => selectedYears.includes(y));
+    if (allSelected) {
+      setSelectedYears((prev) => prev.filter((x) => !filtered.includes(x)));
+    } else {
+      setSelectedYears((prev) => [...new Set([...prev, ...filtered])]);
+    }
+  };
+
   // ─── Toggle agenti ────────────────────────────────────────────────────────
   const toggleAgent = (a) => {
     setSelectedAgents((prev) =>
       prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a],
     );
   };
-  const toggleAllAgents = () => {
-    if (selectedAgents.length === uniqueAgents.length) {
-      setSelectedAgents([]);
+  const toggleAllAgents = (filtered) => {
+    const allSelected = filtered.every((a) => selectedAgents.includes(a));
+    if (allSelected) {
+      setSelectedAgents((prev) => prev.filter((x) => !filtered.includes(x)));
     } else {
-      setSelectedAgents([...uniqueAgents]);
+      setSelectedAgents((prev) => [...new Set([...prev, ...filtered])]);
     }
   };
 
@@ -176,11 +250,12 @@ const StatisticheVendutoCopral = () => {
       prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f],
     );
   };
-  const toggleAllFamilies = () => {
-    if (selectedFamilies.length === uniqueFamiliesList.length) {
-      setSelectedFamilies([]);
+  const toggleAllFamilies = (filtered) => {
+    const allSelected = filtered.every((f) => selectedFamilies.includes(f));
+    if (allSelected) {
+      setSelectedFamilies((prev) => prev.filter((x) => !filtered.includes(x)));
     } else {
-      setSelectedFamilies([...uniqueFamiliesList]);
+      setSelectedFamilies((prev) => [...new Set([...prev, ...filtered])]);
     }
   };
 
@@ -190,15 +265,23 @@ const StatisticheVendutoCopral = () => {
       prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
     );
   };
-  const toggleAllCustomers = () => {
-    if (selectedCustomers.length === uniqueCustomers.length) {
-      setSelectedCustomers([]);
+  const toggleAllCustomers = (filtered) => {
+    const allSelected = filtered.every((c) => selectedCustomers.includes(c));
+    if (allSelected) {
+      setSelectedCustomers((prev) => prev.filter((x) => !filtered.includes(x)));
     } else {
-      setSelectedCustomers([...uniqueCustomers]);
+      setSelectedCustomers((prev) => [...new Set([...prev, ...filtered])]);
     }
   };
 
   // ─── Label dropdown ───────────────────────────────────────────────────────
+  const yearToggleLabel =
+    selectedYears.length === 0
+      ? "Tutti gli Anni"
+      : selectedYears.length === 1
+        ? String(selectedYears[0])
+        : `${selectedYears.length} Anni`;
+
   const agentToggleLabel =
     selectedAgents.length === 0
       ? "Tutti gli Agenti"
@@ -237,9 +320,16 @@ const StatisticheVendutoCopral = () => {
       const clienteNome = cleanValue(row["Descrizione Cliente/Fornitore"]);
       const famRaw = cleanValue(row["Descrizione Famiglia"]);
 
+      // ── Filtro intervallo date ──
       if (startDate && endDate) {
         const d = row.DataObj;
         if (!d || d < startDate || d > endDate) return;
+      }
+
+      // ── Filtro anno ──
+      if (selectedYears.length > 0) {
+        const yr = row.DataObj?.getFullYear();
+        if (!selectedYears.includes(yr)) return;
       }
 
       if (selectedAgents.length > 0 && !selectedAgents.includes(agenteNome))
@@ -317,6 +407,7 @@ const StatisticheVendutoCopral = () => {
     selectedAgents,
     selectedFamilies,
     selectedCustomers,
+    selectedYears,
   ]);
 
   const filteredData = useMemo(() => {
@@ -335,7 +426,8 @@ const StatisticheVendutoCopral = () => {
     startDate !== null ||
     selectedAgents.length > 0 ||
     selectedFamilies.length > 0 ||
-    selectedCustomers.length > 0;
+    selectedCustomers.length > 0 ||
+    selectedYears.length > 0;
 
   if (isFetching) return <Preloader show={true} />;
 
@@ -382,6 +474,50 @@ const StatisticheVendutoCopral = () => {
             onDateChange={handleFlatpickrChange}
           />
 
+          {/* DROPDOWN ANNO */}
+          <SpkDropdown
+            toggleas="a"
+            Customtoggleclass="btn btn-outline-light btn-sm border text-muted no-caret"
+            Toggletext={yearToggleLabel}
+            Arrowicon={true}
+            autoClose="outside"
+          >
+            <div style={{ minWidth: "180px" }}>
+              <DropdownSearch
+                value={yearSearch}
+                onChange={setYearSearch}
+                placeholder="Cerca anno..."
+              />
+              <Dropdown.Divider className="my-1" />
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+                <MultiSelectItem
+                  label="Tutti gli Anni"
+                  bold
+                  checked={
+                    filteredYearsList.length > 0 &&
+                    filteredYearsList.every((y) => selectedYears.includes(y))
+                  }
+                  onToggle={() => toggleAllYears(filteredYearsList)}
+                />
+                <Dropdown.Divider className="my-1" />
+                {filteredYearsList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredYearsList.map((y) => (
+                    <MultiSelectItem
+                      key={y}
+                      label={String(y)}
+                      checked={selectedYears.includes(y)}
+                      onToggle={() => toggleYear(y)}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          </SpkDropdown>
+
           {/* DROPDOWN AGENTI */}
           <SpkDropdown
             toggleas="a"
@@ -390,31 +526,39 @@ const StatisticheVendutoCopral = () => {
             Arrowicon={true}
             autoClose="outside"
           >
-            <div
-              style={{
-                maxHeight: "250px",
-                overflowY: "auto",
-                minWidth: "220px",
-              }}
-            >
-              <MultiSelectItem
-                label="Tutti gli Agenti"
-                bold
-                checked={
-                  uniqueAgents.length > 0 &&
-                  selectedAgents.length === uniqueAgents.length
-                }
-                onToggle={toggleAllAgents}
+            <div style={{ minWidth: "220px" }}>
+              <DropdownSearch
+                value={agentSearch}
+                onChange={setAgentSearch}
+                placeholder="Cerca agente..."
               />
               <Dropdown.Divider className="my-1" />
-              {uniqueAgents.map((a) => (
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                 <MultiSelectItem
-                  key={a}
-                  label={a}
-                  checked={selectedAgents.includes(a)}
-                  onToggle={() => toggleAgent(a)}
+                  label="Tutti gli Agenti"
+                  bold
+                  checked={
+                    filteredAgentsList.length > 0 &&
+                    filteredAgentsList.every((a) => selectedAgents.includes(a))
+                  }
+                  onToggle={() => toggleAllAgents(filteredAgentsList)}
                 />
-              ))}
+                <Dropdown.Divider className="my-1" />
+                {filteredAgentsList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredAgentsList.map((a) => (
+                    <MultiSelectItem
+                      key={a}
+                      label={a}
+                      checked={selectedAgents.includes(a)}
+                      onToggle={() => toggleAgent(a)}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </SpkDropdown>
 
@@ -426,31 +570,41 @@ const StatisticheVendutoCopral = () => {
             Arrowicon={true}
             autoClose="outside"
           >
-            <div
-              style={{
-                maxHeight: "250px",
-                overflowY: "auto",
-                minWidth: "220px",
-              }}
-            >
-              <MultiSelectItem
-                label="Tutte le Famiglie"
-                bold
-                checked={
-                  uniqueFamiliesList.length > 0 &&
-                  selectedFamilies.length === uniqueFamiliesList.length
-                }
-                onToggle={toggleAllFamilies}
+            <div style={{ minWidth: "220px" }}>
+              <DropdownSearch
+                value={familySearch}
+                onChange={setFamilySearch}
+                placeholder="Cerca famiglia..."
               />
               <Dropdown.Divider className="my-1" />
-              {uniqueFamiliesList.map((f) => (
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                 <MultiSelectItem
-                  key={f}
-                  label={f}
-                  checked={selectedFamilies.includes(f)}
-                  onToggle={() => toggleFamily(f)}
+                  label="Tutte le Famiglie"
+                  bold
+                  checked={
+                    filteredFamiliesList.length > 0 &&
+                    filteredFamiliesList.every((f) =>
+                      selectedFamilies.includes(f),
+                    )
+                  }
+                  onToggle={() => toggleAllFamilies(filteredFamiliesList)}
                 />
-              ))}
+                <Dropdown.Divider className="my-1" />
+                {filteredFamiliesList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredFamiliesList.map((f) => (
+                    <MultiSelectItem
+                      key={f}
+                      label={f}
+                      checked={selectedFamilies.includes(f)}
+                      onToggle={() => toggleFamily(f)}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </SpkDropdown>
 
@@ -462,31 +616,41 @@ const StatisticheVendutoCopral = () => {
             Arrowicon={true}
             autoClose="outside"
           >
-            <div
-              style={{
-                maxHeight: "250px",
-                overflowY: "auto",
-                minWidth: "260px",
-              }}
-            >
-              <MultiSelectItem
-                label="Tutti i Clienti"
-                bold
-                checked={
-                  uniqueCustomers.length > 0 &&
-                  selectedCustomers.length === uniqueCustomers.length
-                }
-                onToggle={toggleAllCustomers}
+            <div style={{ minWidth: "260px" }}>
+              <DropdownSearch
+                value={customerSearch}
+                onChange={setCustomerSearch}
+                placeholder="Cerca cliente..."
               />
               <Dropdown.Divider className="my-1" />
-              {uniqueCustomers.map((c) => (
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                 <MultiSelectItem
-                  key={c}
-                  label={c}
-                  checked={selectedCustomers.includes(c)}
-                  onToggle={() => toggleCustomer(c)}
+                  label="Tutti i Clienti"
+                  bold
+                  checked={
+                    filteredCustomersList.length > 0 &&
+                    filteredCustomersList.every((c) =>
+                      selectedCustomers.includes(c),
+                    )
+                  }
+                  onToggle={() => toggleAllCustomers(filteredCustomersList)}
                 />
-              ))}
+                <Dropdown.Divider className="my-1" />
+                {filteredCustomersList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredCustomersList.map((c) => (
+                    <MultiSelectItem
+                      key={c}
+                      label={c}
+                      checked={selectedCustomers.includes(c)}
+                      onToggle={() => toggleCustomer(c)}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </SpkDropdown>
 
@@ -499,6 +663,11 @@ const StatisticheVendutoCopral = () => {
                 setSelectedAgents([]);
                 setSelectedFamilies([]);
                 setSelectedCustomers([]);
+                setSelectedYears([]);
+                setAgentSearch("");
+                setFamilySearch("");
+                setCustomerSearch("");
+                setYearSearch("");
               }}
               title="Reset"
             >
@@ -587,7 +756,9 @@ const StatisticheVendutoCopral = () => {
                         >
                           <th scope="row" className="fw-bold text-start">
                             <i
-                              className={`ri-arrow-${openAgents.has(ag.nome) ? "down" : "right"}-s-line me-1 text-primary`}
+                              className={`ri-arrow-${
+                                openAgents.has(ag.nome) ? "down" : "right"
+                              }-s-line me-1 text-primary`}
                             ></i>
                             {ag.nome}
                           </th>
