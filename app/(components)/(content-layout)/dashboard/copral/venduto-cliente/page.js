@@ -7,7 +7,7 @@ import React, {
   Fragment,
   useCallback,
 } from "react";
-import { Row, Col, Form } from "react-bootstrap";
+import { Row, Col } from "react-bootstrap";
 import { useRouter } from "next/navigation";
 
 import Pageheader from "@/shared/layouts-components/page-header/pageheader";
@@ -29,7 +29,7 @@ const VendutoCliente = () => {
   const [user, setUser] = useState(null);
   const [filteredTableData, setFilteredTableData] = useState(null);
 
-  const [selectedYear, setSelectedYear] = useState("Tutti");
+  const [selectedYears, setSelectedYears] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
 
   const handleFilteredChange = useCallback((rows) => {
@@ -75,13 +75,12 @@ const VendutoCliente = () => {
           let processedData = rawData.map((riga) => {
             let newRow = { ...riga };
             let valData = newRow["Data"];
-            let year = null;
 
             if (valData && typeof valData === "number") {
               const dateObj = new Date(
                 Math.round((valData - 25569) * 86400 * 1000),
               );
-              year = dateObj.getFullYear();
+              const year = dateObj.getFullYear();
               yearsSet.add(year);
               newRow["Data"] = dateObj.toLocaleDateString("it-IT");
               newRow["Anno_Interno"] = year;
@@ -113,10 +112,18 @@ const VendutoCliente = () => {
     initPage();
   }, [router]);
 
+  const toggleYear = useCallback((year) => {
+    setSelectedYears((prev) =>
+      prev.includes(year) ? prev.filter((y) => y !== year) : [...prev, year],
+    );
+  }, []);
+
   const dataPerAnno = useMemo(() => {
-    if (selectedYear === "Tutti") return data;
-    return data.filter((item) => String(item.Anno_Interno) === selectedYear);
-  }, [data, selectedYear]);
+    if (selectedYears.length === 0) return data;
+    return data.filter((item) =>
+      selectedYears.includes(String(item.Anno_Interno)),
+    );
+  }, [data, selectedYears]);
 
   const stats = useMemo(() => {
     const source = filteredTableData !== null ? filteredTableData : dataPerAnno;
@@ -144,19 +151,26 @@ const VendutoCliente = () => {
     };
   }, [filteredTableData, dataPerAnno]);
 
+  const yearLabel = useMemo(() => {
+    if (selectedYears.length === 0) return null;
+    if (selectedYears.length === 1) return selectedYears[0];
+    return selectedYears
+      .slice()
+      .sort((a, b) => a - b)
+      .join(", ");
+  }, [selectedYears]);
+
   const dynamicCards = [
     {
       id: 1,
-      title:
-        selectedYear === "Tutti" ? "Totale Venduto" : `Venduto ${selectedYear}`,
+      title: yearLabel ? `Venduto ${yearLabel}` : "Totale Venduto",
       count: stats.valore,
       svgIcon: <FaEuroSign />,
       backgroundColor: "primary svg-white",
     },
     {
       id: 2,
-      title:
-        selectedYear === "Tutti" ? "Totale Utile" : `Utile ${selectedYear}`,
+      title: yearLabel ? `Utile ${yearLabel}` : "Totale Utile",
       count: stats.utile,
       svgIcon: <PiTrendUp />,
       backgroundColor: "success svg-white",
@@ -190,7 +204,6 @@ const VendutoCliente = () => {
         <Preloader show={true} />
       ) : (
         <Fragment>
-          {/* HEADER UNIFORMATO A QUELLO AGENTE */}
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
             <Pageheader
               title="Area Cliente"
@@ -198,20 +211,33 @@ const VendutoCliente = () => {
               activepage="Analisi Vendite"
             />
 
-            <div className="d-flex align-items-center bg-white p-2 rounded shadow-sm border">
-              <span className="me-2 fw-bold text-muted">Anno:</span>
-              <Form.Select
-                style={{ width: "120px" }}
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
+            <div className="d-flex align-items-center bg-white p-2 rounded shadow-sm border gap-2 flex-wrap">
+              <span className="fw-bold text-muted">Anno:</span>
+
+              <button
+                className={`btn btn-sm ${
+                  selectedYears.length === 0
+                    ? "btn-primary"
+                    : "btn-outline-secondary"
+                }`}
+                onClick={() => setSelectedYears([])}
               >
-                <option value="Tutti">Tutti</option>
-                {availableYears.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </Form.Select>
+                Tutti
+              </button>
+
+              {availableYears.map((year) => (
+                <button
+                  key={year}
+                  className={`btn btn-sm ${
+                    selectedYears.includes(String(year))
+                      ? "btn-primary"
+                      : "btn-outline-secondary"
+                  }`}
+                  onClick={() => toggleYear(String(year))}
+                >
+                  {year}
+                </button>
+              ))}
             </div>
           </div>
 
