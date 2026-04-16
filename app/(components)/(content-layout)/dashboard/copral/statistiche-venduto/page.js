@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, Fragment } from "react";
+import React, { useState, useEffect, useMemo, Fragment, useRef } from "react";
 import { Col, Row, Card, Form, Dropdown } from "react-bootstrap";
 import SpkBadge from "@/shared/@spk-reusable-components/reusable-uielements/spk-badge";
 import Spkcardscomponent from "@/shared/@spk-reusable-components/reusable-dashboards/spk-cards";
@@ -11,7 +11,6 @@ import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 
-// ─── Formattatori ─────────────────────────────────────────────────────────────
 const formatNum = (val, decimals = 2) => {
   const n = Number(val) || 0;
   const fixed = n.toFixed(decimals);
@@ -24,7 +23,6 @@ const fmtEuro = (val) => `€ ${formatNum(val, 2)}`;
 const fmtQty = (val, unit = "") =>
   `${formatNum(val, 2)}${unit ? ` ${unit}` : ""}`;
 
-// ─── Componente riga multiselect ──────────────────────────────────────────────
 const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
   <Dropdown.Item
     as="div"
@@ -51,7 +49,6 @@ const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
   </Dropdown.Item>
 );
 
-// ─── Barra di ricerca interna al dropdown ─────────────────────────────────────
 const DropdownSearch = ({ value, onChange, placeholder = "Cerca..." }) => (
   <div className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
     <Form.Control
@@ -80,11 +77,13 @@ const StatisticheVendutoCopral = () => {
   const [selectedCustomers, setSelectedCustomers] = useState([]);
   const [selectedYears, setSelectedYears] = useState([]);
 
-  // ─── Ricerche interne ai dropdown ────────────────────────────────────────
   const [agentSearch, setAgentSearch] = useState("");
   const [familySearch, setFamilySearch] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
   const [yearSearch, setYearSearch] = useState("");
+
+  const tableWrapRef = useRef(null);
+  const mirrorRef = useRef(null);
 
   const cleanValue = (val) => {
     const s = String(val || "").trim();
@@ -142,7 +141,6 @@ const StatisticheVendutoCopral = () => {
     return () => controller.abort();
   }, []);
 
-  // ─── Anni disponibili ─────────────────────────────────────────────────────
   const uniqueYears = useMemo(() => {
     if (!sheetData?.length) return [];
     return [
@@ -154,7 +152,6 @@ const StatisticheVendutoCopral = () => {
     ].sort((a, b) => b - a);
   }, [sheetData]);
 
-  // ─── Liste uniche ─────────────────────────────────────────────────────────
   const uniqueAgents = useMemo(() => {
     if (!sheetData) return [];
     return [
@@ -190,7 +187,6 @@ const StatisticheVendutoCopral = () => {
       .sort();
   }, [sheetData, selectedAgents]);
 
-  // ─── Liste filtrate per ricerca interna ───────────────────────────────────
   const filteredYearsList = useMemo(() => {
     if (!yearSearch) return uniqueYears;
     return uniqueYears.filter((y) => String(y).includes(yearSearch.trim()));
@@ -214,7 +210,6 @@ const StatisticheVendutoCopral = () => {
     return uniqueCustomers.filter((c) => c.toLowerCase().includes(t));
   }, [uniqueCustomers, customerSearch]);
 
-  // ─── Toggle anni ──────────────────────────────────────────────────────────
   const toggleYear = (y) => {
     setSelectedYears((prev) =>
       prev.includes(y) ? prev.filter((x) => x !== y) : [...prev, y],
@@ -229,7 +224,6 @@ const StatisticheVendutoCopral = () => {
     }
   };
 
-  // ─── Toggle agenti ────────────────────────────────────────────────────────
   const toggleAgent = (a) => {
     setSelectedAgents((prev) =>
       prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a],
@@ -244,7 +238,6 @@ const StatisticheVendutoCopral = () => {
     }
   };
 
-  // ─── Toggle famiglie ──────────────────────────────────────────────────────
   const toggleFamily = (f) => {
     setSelectedFamilies((prev) =>
       prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f],
@@ -259,7 +252,6 @@ const StatisticheVendutoCopral = () => {
     }
   };
 
-  // ─── Toggle clienti ───────────────────────────────────────────────────────
   const toggleCustomer = (c) => {
     setSelectedCustomers((prev) =>
       prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
@@ -274,7 +266,6 @@ const StatisticheVendutoCopral = () => {
     }
   };
 
-  // ─── Label dropdown ───────────────────────────────────────────────────────
   const yearToggleLabel =
     selectedYears.length === 0
       ? "Tutti gli Anni"
@@ -303,7 +294,6 @@ const StatisticheVendutoCopral = () => {
         ? selectedCustomers[0]
         : `${selectedCustomers.length} Clienti`;
 
-  // ─── Elaborazione dati ────────────────────────────────────────────────────
   const { matrixData, allFamilies, kpis, totalsByFamily } = useMemo(() => {
     if (!sheetData || !Array.isArray(sheetData))
       return { matrixData: [], allFamilies: [], kpis: {}, totalsByFamily: {} };
@@ -320,13 +310,11 @@ const StatisticheVendutoCopral = () => {
       const clienteNome = cleanValue(row["Descrizione Cliente/Fornitore"]);
       const famRaw = cleanValue(row["Descrizione Famiglia"]);
 
-      // ── Filtro intervallo date ──
       if (startDate && endDate) {
         const d = row.DataObj;
         if (!d || d < startDate || d > endDate) return;
       }
 
-      // ── Filtro anno ──
       if (selectedYears.length > 0) {
         const yr = row.DataObj?.getFullYear();
         if (!selectedYears.includes(yr)) return;
@@ -421,6 +409,48 @@ const StatisticheVendutoCopral = () => {
         ),
     );
   }, [matrixData, searchTerm]);
+
+  // ─── Sincronizzazione scrollbar mirror ────────────────────────────────────
+  useEffect(() => {
+    const wrapper = tableWrapRef.current;
+    const mirror = mirrorRef.current;
+    if (!wrapper || !mirror) return;
+
+    const syncWidth = () => {
+      const inner = wrapper.querySelector("table");
+      if (inner && mirror.firstChild) {
+        mirror.firstChild.style.width = inner.scrollWidth + "px";
+      }
+    };
+    syncWidth();
+
+    const onWrapperScroll = () => {
+      if (!mirror._fromMirror) {
+        mirror._fromWrapper = true;
+        mirror.scrollLeft = wrapper.scrollLeft;
+        mirror._fromWrapper = false;
+      }
+    };
+    const onMirrorScroll = () => {
+      if (!mirror._fromWrapper) {
+        mirror._fromMirror = true;
+        wrapper.scrollLeft = mirror.scrollLeft;
+        mirror._fromMirror = false;
+      }
+    };
+
+    wrapper.addEventListener("scroll", onWrapperScroll);
+    mirror.addEventListener("scroll", onMirrorScroll);
+
+    const ro = new ResizeObserver(syncWidth);
+    ro.observe(wrapper);
+
+    return () => {
+      wrapper.removeEventListener("scroll", onWrapperScroll);
+      mirror.removeEventListener("scroll", onMirrorScroll);
+      ro.disconnect();
+    };
+  }, [filteredData, allFamilies]);
 
   const hasActiveFilters =
     startDate !== null ||
@@ -703,7 +733,11 @@ const StatisticheVendutoCopral = () => {
               />
             </Card.Header>
             <Card.Body>
-              <div className="table-responsive border rounded">
+              {/* Tabella */}
+              <div
+                ref={tableWrapRef}
+                className="table-responsive border rounded"
+              >
                 <table className="table table-bordered text-nowrap border-primary sticky-header mb-0">
                   <thead className="table-primary">
                     <tr>
@@ -748,7 +782,6 @@ const StatisticheVendutoCopral = () => {
                   <tbody>
                     {filteredData.map((ag) => (
                       <Fragment key={ag.nome}>
-                        {/* RIGA AGENTE */}
                         <tr
                           className="table-primary-transparent"
                           style={{ cursor: "pointer" }}
@@ -789,7 +822,6 @@ const StatisticheVendutoCopral = () => {
                           </td>
                         </tr>
 
-                        {/* RIGHE CLIENTI */}
                         {openAgents.has(ag.nome) &&
                           Object.values(ag.clienti)
                             .sort((a, b) => b.totVal - a.totVal)
@@ -820,7 +852,6 @@ const StatisticheVendutoCopral = () => {
                       </Fragment>
                     ))}
 
-                    {/* TOTALE COMPLESSIVO */}
                     <tr className="table-dark">
                       <th scope="row" className="text-start">
                         TOTALE COMPLESSIVO
@@ -841,6 +872,20 @@ const StatisticheVendutoCopral = () => {
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
+              {/* Scrollbar mirror SOTTO la tabella */}
+              <div
+                ref={mirrorRef}
+                className="mirror-scrollbar"
+                style={{
+                  overflowX: "scroll",
+                  overflowY: "hidden",
+                  height: "8px",
+                  marginTop: "6px",
+                }}
+              >
+                <div style={{ height: "1px" }} />
               </div>
             </Card.Body>
           </Card>

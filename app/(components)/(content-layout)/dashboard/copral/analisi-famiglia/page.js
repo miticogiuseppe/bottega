@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, Fragment } from "react";
+import React, { useState, useEffect, useMemo, Fragment, useRef } from "react";
 import { Col, Row, Card, Form, Dropdown } from "react-bootstrap";
 import SpkTablescomponent from "@/shared/@spk-reusable-components/reusable-tables/tables-component";
 import SpkBadge from "@/shared/@spk-reusable-components/reusable-uielements/spk-badge";
@@ -12,7 +12,6 @@ import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 
-// ─── Formattatori ─────────────────────────────────────────────────────────────
 const formatNum = (val, decimals = 2) => {
   const n = Number(val) || 0;
   const fixed = n.toFixed(decimals);
@@ -25,7 +24,6 @@ const fmtEuro = (val) => `€ ${formatNum(val, 2)}`;
 const fmtQty = (val, unit = "") =>
   `${formatNum(val, 2)}${unit ? ` ${unit}` : ""}`;
 
-// ─── Componente riga multiselect ──────────────────────────────────────────────
 const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
   <Dropdown.Item
     as="div"
@@ -52,7 +50,6 @@ const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
   </Dropdown.Item>
 );
 
-// ─── Barra di ricerca interna al dropdown ─────────────────────────────────────
 const DropdownSearch = ({ value, onChange, placeholder = "Cerca..." }) => (
   <div className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
     <Form.Control
@@ -81,11 +78,13 @@ const AnalisiPerFamiglia = () => {
   const [selectedGroups, setSelectedGroups] = useState([]);
   const [selectedYears, setSelectedYears] = useState([]);
 
-  // ─── Ricerche interne ai dropdown ────────────────────────────────────────
   const [agentSearch, setAgentSearch] = useState("");
   const [familySearch, setFamilySearch] = useState("");
   const [groupSearch, setGroupSearch] = useState("");
   const [yearSearch, setYearSearch] = useState("");
+
+  const tableWrapRef = useRef(null);
+  const mirrorRef = useRef(null);
 
   const cleanValue = (val) => {
     const s = String(val || "").trim();
@@ -142,7 +141,6 @@ const AnalisiPerFamiglia = () => {
     return () => controller.abort();
   }, []);
 
-  // ─── Anni disponibili ─────────────────────────────────────────────────────
   const uniqueYears = useMemo(() => {
     if (!sheetData?.length) return [];
     return [
@@ -154,7 +152,6 @@ const AnalisiPerFamiglia = () => {
     ].sort((a, b) => b - a);
   }, [sheetData]);
 
-  // ─── Liste uniche ─────────────────────────────────────────────────────────
   const uniqueAgents = useMemo(() => {
     if (!sheetData) return [];
     return [
@@ -186,7 +183,6 @@ const AnalisiPerFamiglia = () => {
       .sort();
   }, [sheetData, selectedFamilies]);
 
-  // ─── Liste filtrate per ricerca interna ───────────────────────────────────
   const filteredAgentsList = useMemo(() => {
     if (!agentSearch) return uniqueAgents;
     const t = agentSearch.toLowerCase();
@@ -210,7 +206,6 @@ const AnalisiPerFamiglia = () => {
     return uniqueYears.filter((y) => String(y).includes(yearSearch.trim()));
   }, [uniqueYears, yearSearch]);
 
-  // ─── Toggle agenti ────────────────────────────────────────────────────────
   const toggleAgent = (a) => {
     setSelectedAgents((prev) =>
       prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a],
@@ -225,7 +220,6 @@ const AnalisiPerFamiglia = () => {
     }
   };
 
-  // ─── Toggle famiglie ──────────────────────────────────────────────────────
   const toggleFamily = (f) => {
     setSelectedFamilies((prev) =>
       prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f],
@@ -242,7 +236,6 @@ const AnalisiPerFamiglia = () => {
     }
   };
 
-  // ─── Toggle gruppi ────────────────────────────────────────────────────────
   const toggleGroup = (g) => {
     setSelectedGroups((prev) =>
       prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g],
@@ -257,7 +250,6 @@ const AnalisiPerFamiglia = () => {
     }
   };
 
-  // ─── Toggle anni ──────────────────────────────────────────────────────────
   const toggleYear = (y) => {
     setSelectedYears((prev) =>
       prev.includes(y) ? prev.filter((x) => x !== y) : [...prev, y],
@@ -278,7 +270,6 @@ const AnalisiPerFamiglia = () => {
     setOpenFamilies(next);
   };
 
-  // ─── Label dropdown ───────────────────────────────────────────────────────
   const agentToggleLabel =
     selectedAgents.length === 0
       ? "Tutti gli Agenti"
@@ -307,7 +298,6 @@ const AnalisiPerFamiglia = () => {
         ? String(selectedYears[0])
         : `${selectedYears.length} Anni`;
 
-  // ─── Elaborazione dati ────────────────────────────────────────────────────
   const { matrix, allAgents, kpis, totalsByAgent } = useMemo(() => {
     if (!sheetData || !Array.isArray(sheetData))
       return {
@@ -329,13 +319,11 @@ const AnalisiPerFamiglia = () => {
       const macro = cleanValue(row["Descrizione Famiglia"]).toUpperCase();
       const sotto = cleanValue(row["Descrizione Gruppo"]).toUpperCase();
 
-      // ── Filtro intervallo date ──
       if (startDate && endDate) {
         const d = row.DataObj;
         if (!d || d < startDate || d > endDate) return;
       }
 
-      // ── Filtro anno ──
       if (selectedYears.length > 0) {
         const yr = row.DataObj?.getFullYear();
         if (!selectedYears.includes(yr)) return;
@@ -397,6 +385,55 @@ const AnalisiPerFamiglia = () => {
     selectedGroups,
     selectedYears,
   ]);
+
+  const filteredMatrix = useMemo(() => {
+    if (!searchTerm) return matrix;
+    return matrix.filter((m) =>
+      m.nome.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [matrix, searchTerm]);
+
+  // ─── Sincronizzazione scrollbar mirror ────────────────────────────────────
+  useEffect(() => {
+    const wrapper = tableWrapRef.current;
+    const mirror = mirrorRef.current;
+    if (!wrapper || !mirror) return;
+
+    const syncWidth = () => {
+      const inner = wrapper.querySelector("table");
+      if (inner && mirror.firstChild) {
+        mirror.firstChild.style.width = inner.scrollWidth + "px";
+      }
+    };
+    syncWidth();
+
+    const onWrapperScroll = () => {
+      if (!mirror._fromMirror) {
+        mirror._fromWrapper = true;
+        mirror.scrollLeft = wrapper.scrollLeft;
+        mirror._fromWrapper = false;
+      }
+    };
+    const onMirrorScroll = () => {
+      if (!mirror._fromWrapper) {
+        mirror._fromMirror = true;
+        wrapper.scrollLeft = mirror.scrollLeft;
+        mirror._fromMirror = false;
+      }
+    };
+
+    wrapper.addEventListener("scroll", onWrapperScroll);
+    mirror.addEventListener("scroll", onMirrorScroll);
+
+    const ro = new ResizeObserver(syncWidth);
+    ro.observe(wrapper);
+
+    return () => {
+      wrapper.removeEventListener("scroll", onWrapperScroll);
+      mirror.removeEventListener("scroll", onMirrorScroll);
+      ro.disconnect();
+    };
+  }, [filteredMatrix, allAgents]);
 
   const resetFilters = () => {
     setStartDate(null);
@@ -681,7 +718,8 @@ const AnalisiPerFamiglia = () => {
               />
             </Card.Header>
             <Card.Body>
-              <div className="table-responsive">
+              {/* Tabella */}
+              <div ref={tableWrapRef} className="table-responsive">
                 <SpkTablescomponent
                   tableClass="table-bordered text-nowrap border-primary sticky-header"
                   header={[
@@ -693,80 +731,73 @@ const AnalisiPerFamiglia = () => {
                     { title: "TOT. VALORE (€)" },
                   ]}
                 >
-                  {matrix
-                    .filter((m) =>
-                      m.nome.toLowerCase().includes(searchTerm.toLowerCase()),
-                    )
-                    .map((macro) => (
-                      <Fragment key={macro.nome}>
-                        {/* RIGA FAMIGLIA */}
-                        <tr
-                          className="table-primary-transparent cursor-pointer"
-                          onClick={() => toggleFamilyRow(macro.nome)}
-                        >
-                          <th scope="row" className="fw-bold text-start">
-                            <i
-                              className={`ri-arrow-${
-                                openFamilies.has(macro.nome) ? "down" : "right"
-                              }-s-line me-1 text-primary`}
-                            ></i>
-                            {macro.nome}
-                          </th>
-                          {allAgents.map((ag) => (
-                            <Fragment key={ag}>
-                              <td className="text-end fw-bold">
-                                {fmtEuro(macro.agenti[ag]?.v || 0)}
-                              </td>
-                              <td className="text-end fw-bold">
-                                {macro.nome.includes("ALLUMINIO") ? (
-                                  <SpkBadge variant="primary">
-                                    {fmtQty(macro.agenti[ag]?.q || 0, "Kg")}
-                                  </SpkBadge>
-                                ) : macro.nome.includes("ACCESSORI") ? (
-                                  <SpkBadge variant="success">
-                                    {fmtQty(macro.agenti[ag]?.q || 0, "Pz")}
-                                  </SpkBadge>
-                                ) : (
-                                  fmtQty(macro.agenti[ag]?.q || 0)
-                                )}
-                              </td>
-                            </Fragment>
-                          ))}
-                          <td className="text-end fw-bold text-primary bg-primary-transparent">
-                            {fmtEuro(macro.totV)}
-                          </td>
-                        </tr>
+                  {filteredMatrix.map((macro) => (
+                    <Fragment key={macro.nome}>
+                      <tr
+                        className="table-primary-transparent cursor-pointer"
+                        onClick={() => toggleFamilyRow(macro.nome)}
+                      >
+                        <th scope="row" className="fw-bold text-start">
+                          <i
+                            className={`ri-arrow-${
+                              openFamilies.has(macro.nome) ? "down" : "right"
+                            }-s-line me-1 text-primary`}
+                          ></i>
+                          {macro.nome}
+                        </th>
+                        {allAgents.map((ag) => (
+                          <Fragment key={ag}>
+                            <td className="text-end fw-bold">
+                              {fmtEuro(macro.agenti[ag]?.v || 0)}
+                            </td>
+                            <td className="text-end fw-bold">
+                              {macro.nome.includes("ALLUMINIO") ? (
+                                <SpkBadge variant="primary">
+                                  {fmtQty(macro.agenti[ag]?.q || 0, "Kg")}
+                                </SpkBadge>
+                              ) : macro.nome.includes("ACCESSORI") ? (
+                                <SpkBadge variant="success">
+                                  {fmtQty(macro.agenti[ag]?.q || 0, "Pz")}
+                                </SpkBadge>
+                              ) : (
+                                fmtQty(macro.agenti[ag]?.q || 0)
+                              )}
+                            </td>
+                          </Fragment>
+                        ))}
+                        <td className="text-end fw-bold text-primary bg-primary-transparent">
+                          {fmtEuro(macro.totV)}
+                        </td>
+                      </tr>
 
-                        {/* RIGHE SOTTOGRUPPO */}
-                        {openFamilies.has(macro.nome) &&
-                          Object.values(macro.sotto).map((sotto) => (
-                            <tr key={sotto.nome}>
-                              <td
-                                className="ps-5 text-muted text-uppercase text-start"
-                                style={{ fontSize: "10px" }}
-                              >
-                                <i className="ri-corner-down-right-line me-2"></i>
-                                {sotto.nome}
-                              </td>
-                              {allAgents.map((ag) => (
-                                <Fragment key={ag}>
-                                  <td className="text-end text-muted">
-                                    {fmtEuro(sotto.agenti[ag]?.v || 0)}
-                                  </td>
-                                  <td className="text-end text-muted">
-                                    {fmtQty(sotto.agenti[ag]?.q || 0)}
-                                  </td>
-                                </Fragment>
-                              ))}
-                              <td className="text-end text-muted">
-                                {fmtEuro(sotto.totV)}
-                              </td>
-                            </tr>
-                          ))}
-                      </Fragment>
-                    ))}
+                      {openFamilies.has(macro.nome) &&
+                        Object.values(macro.sotto).map((sotto) => (
+                          <tr key={sotto.nome}>
+                            <td
+                              className="ps-5 text-muted text-uppercase text-start"
+                              style={{ fontSize: "10px" }}
+                            >
+                              <i className="ri-corner-down-right-line me-2"></i>
+                              {sotto.nome}
+                            </td>
+                            {allAgents.map((ag) => (
+                              <Fragment key={ag}>
+                                <td className="text-end text-muted">
+                                  {fmtEuro(sotto.agenti[ag]?.v || 0)}
+                                </td>
+                                <td className="text-end text-muted">
+                                  {fmtQty(sotto.agenti[ag]?.q || 0)}
+                                </td>
+                              </Fragment>
+                            ))}
+                            <td className="text-end text-muted">
+                              {fmtEuro(sotto.totV)}
+                            </td>
+                          </tr>
+                        ))}
+                    </Fragment>
+                  ))}
 
-                  {/* TOTALE COMPLESSIVO */}
                   <tr className="table-dark">
                     <th scope="row" className="text-start">
                       TOTALE COMPLESSIVO
@@ -786,6 +817,20 @@ const AnalisiPerFamiglia = () => {
                     </td>
                   </tr>
                 </SpkTablescomponent>
+              </div>
+
+              {/* Scrollbar mirror SOTTO la tabella */}
+              <div
+                ref={mirrorRef}
+                className="mirror-scrollbar"
+                style={{
+                  overflowX: "scroll",
+                  overflowY: "hidden",
+                  height: "8px",
+                  marginTop: "6px",
+                }}
+              >
+                <div style={{ height: "1px" }} />
               </div>
             </Card.Body>
           </Card>
