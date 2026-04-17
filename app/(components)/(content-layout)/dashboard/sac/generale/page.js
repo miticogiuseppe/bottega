@@ -6,7 +6,6 @@ const CATEGORIES = [
   {
     id: "coge",
     label: "COGE",
-
     subfolders: ["ARCHIVIAZIONE", "CSV", "DETTCOSTI_RICAVI"],
     color: "#1a56db",
     bg: "#eff6ff",
@@ -123,6 +122,7 @@ function LoadingOverlay() {
         justifyContent: "center",
         zIndex: 2000,
         backdropFilter: "blur(6px)",
+        padding: "16px",
       }}
     >
       <div
@@ -135,7 +135,8 @@ function LoadingOverlay() {
           alignItems: "center",
           gap: "20px",
           boxShadow: "0 32px 80px rgba(0,0,0,0.25)",
-          minWidth: "280px",
+          width: "100%",
+          maxWidth: "320px",
         }}
       >
         <div style={{ position: "relative", width: "52px", height: "52px" }}>
@@ -199,7 +200,7 @@ function SubfolderModal({ category, files, onClose, onConfirm }) {
         inset: 0,
         background: "rgba(0,0,0,0.4)",
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-end",
         justifyContent: "center",
         zIndex: 1000,
         backdropFilter: "blur(4px)",
@@ -209,12 +210,24 @@ function SubfolderModal({ category, files, onClose, onConfirm }) {
       <div
         style={{
           background: "#fff",
-          borderRadius: "16px",
-          padding: "32px",
-          width: "440px",
-          boxShadow: "0 24px 64px rgba(0,0,0,0.15)",
+          borderRadius: "20px 20px 0 0",
+          padding: "28px 20px 36px",
+          width: "100%",
+          maxWidth: "600px",
+          boxShadow: "0 -8px 40px rgba(0,0,0,0.15)",
         }}
       >
+        {/* Handle bar */}
+        <div
+          style={{
+            width: "40px",
+            height: "4px",
+            borderRadius: "2px",
+            background: "#e2e8f0",
+            margin: "0 auto 24px",
+          }}
+        />
+
         <p
           style={{
             fontSize: "11px",
@@ -232,12 +245,12 @@ function SubfolderModal({ category, files, onClose, onConfirm }) {
             fontSize: "20px",
             fontWeight: 700,
             color: "#0f172a",
-            margin: "0 0 6px",
+            margin: "0 0 4px",
           }}
         >
           Seleziona cartella in {category.label}
         </h2>
-        <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 24px" }}>
+        <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 20px" }}>
           {files.length} file{" "}
           {files.length === 1 ? "selezionato" : "selezionati"}
         </p>
@@ -247,7 +260,7 @@ function SubfolderModal({ category, files, onClose, onConfirm }) {
             display: "flex",
             flexDirection: "column",
             gap: "10px",
-            marginBottom: "28px",
+            marginBottom: "24px",
           }}
         >
           {category.subfolders.map((sub) => (
@@ -258,20 +271,21 @@ function SubfolderModal({ category, files, onClose, onConfirm }) {
                 display: "flex",
                 alignItems: "center",
                 gap: "14px",
-                padding: "14px 18px",
+                padding: "16px 18px",
                 border: `1.5px solid ${selected === sub ? category.color : "#e2e8f0"}`,
-                borderRadius: "10px",
+                borderRadius: "12px",
                 background: selected === sub ? category.bg : "#fafafa",
                 cursor: "pointer",
                 transition: "all 0.15s",
                 textAlign: "left",
+                WebkitTapHighlightColor: "transparent",
               }}
             >
               <div
                 style={{
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "8px",
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "10px",
                   background: selected === sub ? category.bg : "#f1f5f9",
                   border: `1px solid ${selected === sub ? category.border : "#e2e8f0"}`,
                   display: "flex",
@@ -295,7 +309,7 @@ function SubfolderModal({ category, files, onClose, onConfirm }) {
                 style={{
                   margin: 0,
                   fontWeight: 600,
-                  fontSize: "14px",
+                  fontSize: "15px",
                   color: selected === sub ? category.color : "#1e293b",
                 }}
               >
@@ -305,8 +319,8 @@ function SubfolderModal({ category, files, onClose, onConfirm }) {
                 <div
                   style={{
                     marginLeft: "auto",
-                    width: "20px",
-                    height: "20px",
+                    width: "22px",
+                    height: "22px",
                     borderRadius: "50%",
                     background: category.color,
                     display: "flex",
@@ -316,8 +330,8 @@ function SubfolderModal({ category, files, onClose, onConfirm }) {
                   }}
                 >
                   <svg
-                    width="11"
-                    height="11"
+                    width="12"
+                    height="12"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="#fff"
@@ -336,14 +350,15 @@ function SubfolderModal({ category, files, onClose, onConfirm }) {
             onClick={onClose}
             style={{
               flex: 1,
-              padding: "12px",
+              padding: "14px",
               border: "1px solid #e2e8f0",
-              borderRadius: "10px",
+              borderRadius: "12px",
               background: "#fff",
               color: "#64748b",
               fontWeight: 600,
-              fontSize: "14px",
+              fontSize: "15px",
               cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
             }}
           >
             Annulla
@@ -353,19 +368,19 @@ function SubfolderModal({ category, files, onClose, onConfirm }) {
               onClick={() => onConfirm(selected)}
               style={{
                 flex: 2,
-                padding: "12px",
+                padding: "14px",
                 border: "none",
-                borderRadius: "10px",
+                borderRadius: "12px",
                 background: category.color,
                 color: "#fff",
                 fontWeight: 600,
-                fontSize: "14px",
+                fontSize: "15px",
                 cursor: "pointer",
-                transition: "all 0.15s",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "8px",
+                WebkitTapHighlightColor: "transparent",
               }}
             >
               <svg
@@ -443,7 +458,7 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
       style={{
         background: "#fff",
         border: `1px solid ${dragging ? category.color : "#e8edf3"}`,
-        borderRadius: "14px",
+        borderRadius: "16px",
         overflow: "hidden",
         transition: "all 0.2s",
         boxShadow: dragging
@@ -451,9 +466,10 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
           : "0 1px 3px rgba(0,0,0,0.06)",
       }}
     >
+      {/* Header */}
       <div
         style={{
-          padding: "18px 20px",
+          padding: "16px 18px",
           borderBottom: "1px solid #f1f5f9",
           display: "flex",
           alignItems: "center",
@@ -462,9 +478,9 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
       >
         <div
           style={{
-            width: "42px",
-            height: "42px",
-            borderRadius: "10px",
+            width: "44px",
+            height: "44px",
+            borderRadius: "12px",
             background: category.bg,
             border: `1px solid ${category.border}`,
             display: "flex",
@@ -476,7 +492,7 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
         >
           {ICONS[category.id]}
         </div>
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <h3
             style={{
               margin: 0,
@@ -487,41 +503,38 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
           >
             {category.label}
           </h3>
-          <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8" }}>
-            {category.description}
-          </p>
+          {category.subfolders.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                gap: "4px",
+                flexWrap: "wrap",
+                marginTop: "4px",
+              }}
+            >
+              {category.subfolders.map((s) => (
+                <span
+                  key={s}
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    padding: "2px 7px",
+                    borderRadius: "5px",
+                    background: category.bg,
+                    color: category.color,
+                    border: `1px solid ${category.border}`,
+                  }}
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
-        {category.subfolders.length > 0 && (
-          <div
-            style={{
-              marginLeft: "auto",
-              display: "flex",
-              gap: "6px",
-              flexWrap: "wrap",
-              justifyContent: "flex-end",
-            }}
-          >
-            {category.subfolders.map((s) => (
-              <span
-                key={s}
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 600,
-                  letterSpacing: "0.05em",
-                  padding: "3px 8px",
-                  borderRadius: "6px",
-                  background: category.bg,
-                  color: category.color,
-                  border: `1px solid ${category.border}`,
-                }}
-              >
-                {s}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
+      {/* Drop zone */}
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -531,7 +544,7 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
         onDrop={onDrop}
         onClick={() => status === null && inputRef.current?.click()}
         style={{
-          padding: "28px 20px",
+          padding: "24px 18px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -540,7 +553,8 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
           cursor: status === null ? "pointer" : "default",
           background: dragging ? category.bg : "transparent",
           transition: "background 0.2s",
-          minHeight: "140px",
+          minHeight: "130px",
+          WebkitTapHighlightColor: "transparent",
         }}
       >
         <input
@@ -558,8 +572,8 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
           <>
             <div
               style={{
-                width: "44px",
-                height: "44px",
+                width: "48px",
+                height: "48px",
                 borderRadius: "50%",
                 background: "#f0fdf4",
                 border: "1.5px solid #86efac",
@@ -569,8 +583,8 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
               }}
             >
               <svg
-                width="22"
-                height="22"
+                width="24"
+                height="24"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="#16a34a"
@@ -597,8 +611,8 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
           <>
             <div
               style={{
-                width: "44px",
-                height: "44px",
+                width: "48px",
+                height: "48px",
                 borderRadius: "50%",
                 background: "#fef2f2",
                 border: "1.5px solid #fca5a5",
@@ -608,8 +622,8 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
               }}
             >
               <svg
-                width="22"
-                height="22"
+                width="24"
+                height="24"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="#dc2626"
@@ -638,8 +652,8 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
           <>
             <div
               style={{
-                width: "44px",
-                height: "44px",
+                width: "48px",
+                height: "48px",
                 borderRadius: "50%",
                 background: dragging ? category.bg : "#f8fafc",
                 border: `1.5px dashed ${dragging ? category.color : "#cbd5e1"}`,
@@ -668,16 +682,22 @@ function UploadZone({ category, onUpload, onDirectUpload }) {
                 fontSize: "14px",
                 fontWeight: 600,
                 color: dragging ? category.color : "#334155",
+                textAlign: "center",
               }}
             >
-              {dragging
-                ? "Rilascia i file qui"
-                : "Trascina i file oppure clicca"}
+              {dragging ? "Rilascia i file qui" : "Tocca per selezionare"}
             </p>
-            <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8" }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: "12px",
+                color: "#94a3b8",
+                textAlign: "center",
+              }}
+            >
               {category.subfolders.length > 0
-                ? "Verrai guidato nella scelta della sottocartella"
-                : "Clicca o trascina per selezionare i file"}
+                ? "Sceglierai la sottocartella dopo"
+                : "I file verranno caricati automaticamente"}
             </p>
           </>
         )}
@@ -698,7 +718,7 @@ export default function SacGenerale() {
 
   const handleConfirm = async (subfolder) => {
     const { category, files } = modal;
-    setModal(null); // chiude la modale
+    setModal(null);
     setGlobalLoading(true);
     try {
       await uploadFiles(files, category.label, subfolder);
@@ -727,15 +747,20 @@ export default function SacGenerale() {
       {globalLoading && <LoadingOverlay />}
 
       <div
-        style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 24px" }}
+        style={{
+          maxWidth: "1100px",
+          margin: "0 auto",
+          padding: "24px 16px 40px",
+        }}
       >
-        <div style={{ marginBottom: "36px" }}>
+        {/* Header */}
+        <div style={{ marginBottom: "24px" }}>
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "10px",
-              marginBottom: "8px",
+              gap: "8px",
+              marginBottom: "6px",
             }}
           >
             <div
@@ -745,6 +770,7 @@ export default function SacGenerale() {
                 borderRadius: "50%",
                 background: "#22c55e",
                 boxShadow: "0 0 0 3px #dcfce7",
+                flexShrink: 0,
               }}
             />
             <span
@@ -761,10 +787,10 @@ export default function SacGenerale() {
           </div>
           <h1
             style={{
-              fontSize: "28px",
+              fontSize: "clamp(22px, 5vw, 28px)",
               fontWeight: 800,
               color: "#0f172a",
-              margin: "0 0 6px",
+              margin: "0 0 4px",
               letterSpacing: "-0.02em",
             }}
           >
@@ -775,11 +801,13 @@ export default function SacGenerale() {
           </p>
         </div>
 
+        {/* Grid — 1 colonna su mobile, 2 su desktop */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(460px, 1fr))",
-            gap: "20px",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(min(100%, 460px), 1fr))",
+            gap: "14px",
           }}
         >
           {CATEGORIES.map((cat) => (
