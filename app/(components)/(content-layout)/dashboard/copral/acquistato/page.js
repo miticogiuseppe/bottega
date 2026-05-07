@@ -190,6 +190,28 @@ const AcquistatoPage = () => {
         const json = await response.json();
         const rawData = json?.data ?? [];
 
+        // ── DEBUG temporaneo: verifica nomi colonne e valori ──
+        if (rawData.length > 0) {
+          console.log("CHIAVI:", Object.keys(rawData[0]));
+          console.log(
+            "ANNO raw:",
+            rawData[0]["ANNO"],
+            typeof rawData[0]["ANNO"],
+          );
+          console.log(
+            "VALORE raw:",
+            rawData[0]["Valore di uno o piu' sconti"],
+            typeof rawData[0]["Valore di uno o piu' sconti"],
+          );
+        }
+        if (rawData.length > 0) {
+          const anniUnici = [...new Set(rawData.map((r) => r["ANNO"]))];
+          console.log("ANNI UNICI RAW:", anniUnici);
+
+          const mesiUnici = [...new Set(rawData.map((r) => r["MESE"]))];
+          console.log("MESI UNICI RAW:", mesiUnici);
+        }
+
         const parsedData = rawData.map((row) => {
           let dateObj = null;
           const raw = row["Data"];
@@ -201,7 +223,35 @@ const AcquistatoPage = () => {
             }
             dateObj.setHours(0, 0, 0, 0);
           }
-          return { ...row, DataObj: dateObj };
+
+          // ── Anno: arrotonda per eliminare decimali tipo 2026.00 ──
+          const annoRaw = row["ANNO"] ?? null;
+          const _anno =
+            annoRaw !== null
+              ? Math.round(Number(annoRaw))
+              : (dateObj?.getFullYear() ?? null);
+
+          // ── Mese: arrotonda per eliminare decimali ──
+          const meseRaw = row["MESE"] ?? null;
+          const _mese =
+            meseRaw !== null
+              ? Math.round(Number(meseRaw))
+              : dateObj
+                ? dateObj.getMonth() + 1
+                : null;
+
+          return {
+            ...row,
+            DataObj: dateObj,
+            // ── Nome esatto colonna valore confermato da console ──
+            _valore: parseFloat(row["Valore di uno o piu' sconti"]) || 0,
+            // ── Quantità principale ──
+            _qta: parseFloat(row["Quantita'"]) || 0,
+            // ── Quantità secondaria (nuova colonna) ──
+            _qta2: parseFloat(row["Qta 2"]) || 0,
+            _anno,
+            _mese,
+          };
         });
 
         setSheetData(parsedData);
@@ -215,13 +265,13 @@ const AcquistatoPage = () => {
     init();
   }, [router]);
 
-  // ─── Anni disponibili ─────────────────────────────────────────────────────
+  // ─── Anni disponibili (usa _anno normalizzato) ────────────────────────────
   const uniqueYears = useMemo(() => {
     if (!sheetData?.length) return [];
     const years = [
       ...new Set(
         sheetData
-          .map((r) => r.DataObj?.getFullYear())
+          .map((r) => r._anno)
           .filter((y) => y !== undefined && y !== null && !isNaN(y)),
       ),
     ].sort((a, b) => b - a);
@@ -322,10 +372,9 @@ const AcquistatoPage = () => {
         if (!d || d < start || d > end) return;
       }
 
-      // ── Filtro per anno ──
+      // ── Filtro per anno (usa _anno normalizzato) ──
       if (selectedYears.length > 0) {
-        const yr = row.DataObj?.getFullYear();
-        if (!selectedYears.includes(yr)) return;
+        if (!selectedYears.includes(row._anno)) return;
       }
 
       if (
@@ -338,12 +387,21 @@ const AcquistatoPage = () => {
       if (selectedFamilies.length > 0 && !selectedFamilies.includes(famiglia))
         return;
 
-      const valore = parseFloat(row["Valore"]) || 0;
-      const qta = parseFloat(row["Quantita'"]) || 0;
+      // ── Usa i valori normalizzati in fase di parse ──
+      const valore = row._valore;
+      const qta = row._qta;
+      const qta2 = row._qta2;
 
       globalVal += valore;
-      if (famiglia.includes("ALLUMINIO")) globalAlmQ += qta;
-      if (famiglia.includes("ACCESSORI")) globalAccQ += qta;
+
+      // ── Somma qta + qta2 per il totale alluminio ──
+      if (famiglia.includes("ALLUMINIO")) {
+        globalAlmQ += qta + qta2;
+      }
+      // ── Somma qta + qta2 per il totale accessori ──
+      if (famiglia.includes("ACCESSORI")) {
+        globalAccQ += qta + qta2;
+      }
 
       if (!grouped[famiglia]) {
         grouped[famiglia] = {
@@ -351,6 +409,7 @@ const AcquistatoPage = () => {
           fornitori: {},
           totVal: 0,
           totQ: 0,
+          totQ2: 0,
         };
       }
 
@@ -359,13 +418,16 @@ const AcquistatoPage = () => {
           nome: fornitoreNome,
           totVal: 0,
           totQ: 0,
+          totQ2: 0,
         };
       }
 
       grouped[famiglia].fornitori[fornitoreNome].totVal += valore;
       grouped[famiglia].fornitori[fornitoreNome].totQ += qta;
+      grouped[famiglia].fornitori[fornitoreNome].totQ2 += qta2;
       grouped[famiglia].totVal += valore;
       grouped[famiglia].totQ += qta;
+      grouped[famiglia].totQ2 += qta2;
     });
 
     return {
@@ -431,6 +493,7 @@ const AcquistatoPage = () => {
     {
       id: 2,
       title: "Totale Alluminio",
+      // ── Qta + Qta2 già sommati nel forEach ──
       count: fmtQty(kpis.globalAlmQ, "Kg"),
       svgIcon: <PiScalesThin />,
       backgroundColor: "primary3 svg-white",
@@ -438,6 +501,7 @@ const AcquistatoPage = () => {
     {
       id: 3,
       title: "Totale Accessori",
+      // ── Qta + Qta2 già sommati nel forEach ──
       count: fmtQty(kpis.globalAccQ, "Pz"),
       svgIcon: <PiPackageThin />,
       backgroundColor: "info svg-white",
@@ -659,7 +723,10 @@ const AcquistatoPage = () => {
                       <th className="align-middle text-end border">
                         VALORE (€)
                       </th>
+                      {/* Colonna Q.TÀ principale (ex "Quantita'") */}
                       <th className="align-middle text-end border">Q.TÀ</th>
+                      {/* Colonna Q.TÀ 2 (nuova colonna "Qta 2") */}
+                      <th className="align-middle text-end border">Q.TÀ 2</th>
                       <th className="align-middle text-end border">
                         TOTALE (€)
                       </th>
@@ -668,7 +735,7 @@ const AcquistatoPage = () => {
                   <tbody>
                     {filteredData.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="text-center text-muted py-4">
+                        <td colSpan={5} className="text-center text-muted py-4">
                           Nessun dato disponibile per i filtri selezionati.
                         </td>
                       </tr>
@@ -692,6 +759,7 @@ const AcquistatoPage = () => {
                             <td className="text-end fw-bold">
                               {fmtEuro(fam.totVal)}
                             </td>
+                            {/* Q.TÀ principale — badge colorato per alluminio/accessori */}
                             <td className="text-end">
                               {fam.nome.includes("ALLUMINIO") ? (
                                 <SpkBadge variant="primary">
@@ -705,6 +773,24 @@ const AcquistatoPage = () => {
                                 <span className="text-muted">
                                   {fmtQty(fam.totQ || 0)}
                                 </span>
+                              )}
+                            </td>
+                            {/* Q.TÀ 2 — badge colorato per alluminio/accessori */}
+                            <td className="text-end">
+                              {fam.nome.includes("ALLUMINIO") ? (
+                                <SpkBadge variant="primary">
+                                  {fmtQty(fam.totQ2 || 0, "Kg")}
+                                </SpkBadge>
+                              ) : fam.nome.includes("ACCESSORI") ? (
+                                <SpkBadge variant="success">
+                                  {fmtQty(fam.totQ2 || 0, "Pz")}
+                                </SpkBadge>
+                              ) : fam.totQ2 > 0 ? (
+                                <span className="text-muted">
+                                  {fmtQty(fam.totQ2)}
+                                </span>
+                              ) : (
+                                <span className="text-muted">—</span>
                               )}
                             </td>
                             <td className="text-end fw-bold text-primary bg-primary-transparent">
@@ -731,8 +817,15 @@ const AcquistatoPage = () => {
                                   <td className="text-end text-muted">
                                     {fmtEuro(fornitore.totVal)}
                                   </td>
+                                  {/* Q.TÀ principale fornitore */}
                                   <td className="text-end text-muted">
                                     {fmtQty(fornitore.totQ || 0)}
+                                  </td>
+                                  {/* Q.TÀ 2 fornitore */}
+                                  <td className="text-end text-muted">
+                                    {fornitore.totQ2 > 0
+                                      ? fmtQty(fornitore.totQ2)
+                                      : "—"}
                                   </td>
                                   <td className="text-end fw-medium text-muted">
                                     {fmtEuro(fornitore.totVal)}
@@ -751,10 +844,13 @@ const AcquistatoPage = () => {
                       <td className="text-end fw-bold">
                         {fmtEuro(kpis.globalVal)}
                       </td>
+                      {/* Q.TÀ totale: alluminio Kg / accessori Pz (include qta2) */}
                       <td className="text-end fw-bold">
                         {fmtQty(kpis.globalAlmQ || 0, "Kg")} /{" "}
                         {fmtQty(kpis.globalAccQ || 0, "Pz")}
                       </td>
+                      {/* Q.TÀ 2 non separata nel totale poiché già inclusa in globalAlmQ/globalAccQ */}
+                      <td className="text-end fw-bold text-muted">—</td>
                       <td className="text-end fw-bold">
                         {fmtEuro(kpis.globalVal)}
                       </td>
