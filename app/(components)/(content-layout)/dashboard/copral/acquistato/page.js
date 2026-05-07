@@ -203,8 +203,8 @@ const AcquistatoPage = () => {
             rawData[0]["Valore di uno o piu' sconti"],
             typeof rawData[0]["Valore di uno o piu' sconti"],
           );
-        }
-        if (rawData.length > 0) {
+
+          // ── DEBUG: tutti i valori unici di ANNO e MESE presenti nel file ──
           const anniUnici = [...new Set(rawData.map((r) => r["ANNO"]))];
           console.log("ANNI UNICI RAW:", anniUnici);
 
@@ -358,9 +358,13 @@ const AcquistatoPage = () => {
     }
 
     const grouped = {};
+
+    // ── Totali separati per Qta e Qta2 su alluminio e accessori ──
     let globalVal = 0,
       globalAlmQ = 0,
-      globalAccQ = 0;
+      globalAlmQ2 = 0,
+      globalAccQ = 0,
+      globalAccQ2 = 0;
 
     sheetData.forEach((row) => {
       const fornitoreNome = cleanValue(row["Descrizione Cliente/Fornitore"]);
@@ -394,13 +398,15 @@ const AcquistatoPage = () => {
 
       globalVal += valore;
 
-      // ── Somma qta + qta2 per il totale alluminio ──
+      // ── Separa qta e qta2 per alluminio ──
       if (famiglia.includes("ALLUMINIO")) {
-        globalAlmQ += qta + qta2;
+        globalAlmQ += qta;
+        globalAlmQ2 += qta2;
       }
-      // ── Somma qta + qta2 per il totale accessori ──
+      // ── Separa qta e qta2 per accessori ──
       if (famiglia.includes("ACCESSORI")) {
-        globalAccQ += qta + qta2;
+        globalAccQ += qta;
+        globalAccQ2 += qta2;
       }
 
       if (!grouped[famiglia]) {
@@ -438,7 +444,8 @@ const AcquistatoPage = () => {
         if (b.nome === "VUOTO") return -1;
         return a.nome.localeCompare(b.nome);
       }),
-      kpis: { globalVal, globalAlmQ, globalAccQ },
+      // ── Esporta tutti i totali separati ──
+      kpis: { globalVal, globalAlmQ, globalAlmQ2, globalAccQ, globalAccQ2 },
     };
   }, [
     sheetData,
@@ -493,16 +500,16 @@ const AcquistatoPage = () => {
     {
       id: 2,
       title: "Totale Alluminio",
-      // ── Qta + Qta2 già sommati nel forEach ──
-      count: fmtQty(kpis.globalAlmQ, "Kg"),
+      // ── Qta + Qta2 sommati per la card ──
+      count: fmtQty(kpis.globalAlmQ + kpis.globalAlmQ2, "Kg"),
       svgIcon: <PiScalesThin />,
       backgroundColor: "primary3 svg-white",
     },
     {
       id: 3,
       title: "Totale Accessori",
-      // ── Qta + Qta2 già sommati nel forEach ──
-      count: fmtQty(kpis.globalAccQ, "Pz"),
+      // ── Qta + Qta2 sommati per la card ──
+      count: fmtQty(kpis.globalAccQ + kpis.globalAccQ2, "Pz"),
       svgIcon: <PiPackageThin />,
       backgroundColor: "info svg-white",
     },
@@ -844,13 +851,16 @@ const AcquistatoPage = () => {
                       <td className="text-end fw-bold">
                         {fmtEuro(kpis.globalVal)}
                       </td>
-                      {/* Q.TÀ totale: alluminio Kg / accessori Pz (include qta2) */}
+                      {/* Q.TÀ totale: alluminio Kg / accessori Pz (solo qta principale) */}
                       <td className="text-end fw-bold">
                         {fmtQty(kpis.globalAlmQ || 0, "Kg")} /{" "}
                         {fmtQty(kpis.globalAccQ || 0, "Pz")}
                       </td>
-                      {/* Q.TÀ 2 non separata nel totale poiché già inclusa in globalAlmQ/globalAccQ */}
-                      <td className="text-end fw-bold text-muted">—</td>
+                      {/* Q.TÀ 2 totale: alluminio Kg / accessori Pz (solo qta2) */}
+                      <td className="text-end fw-bold">
+                        {fmtQty(kpis.globalAlmQ2 || 0, "Kg")} /{" "}
+                        {fmtQty(kpis.globalAccQ2 || 0, "Pz")}
+                      </td>
                       <td className="text-end fw-bold">
                         {fmtEuro(kpis.globalVal)}
                       </td>
