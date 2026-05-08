@@ -24,6 +24,22 @@ const fmtEuro = (val) => `€ ${formatNum(val, 2)}`;
 const fmtQty = (val, unit = "") =>
   `${formatNum(val, 2)}${unit ? ` ${unit}` : ""}`;
 
+// ─── Nomi mesi italiani (chiave = numero mese 1-12) ───────────────────────────
+const MESI_NOMI = {
+  1: "Gennaio",
+  2: "Febbraio",
+  3: "Marzo",
+  4: "Aprile",
+  5: "Maggio",
+  6: "Giugno",
+  7: "Luglio",
+  8: "Agosto",
+  9: "Settembre",
+  10: "Ottobre",
+  11: "Novembre",
+  12: "Dicembre",
+};
+
 // ─── Componente riga multiselect ──────────────────────────────────────────────
 const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
   <Dropdown.Item
@@ -83,11 +99,13 @@ const AcquistatoPage = () => {
   const [selectedSuppliers, setSelectedSuppliers] = useState([]);
   const [selectedFamilies, setSelectedFamilies] = useState([]);
   const [selectedYears, setSelectedYears] = useState([]);
+  const [selectedMonths, setSelectedMonths] = useState([]);
 
   // ─── Ricerche interne ai dropdown ────────────────────────────────────────
   const [supplierSearch, setSupplierSearch] = useState("");
   const [familySearch, setFamilySearch] = useState("");
   const [yearSearch, setYearSearch] = useState("");
+  const [monthSearch, setMonthSearch] = useState("");
 
   // ─── Utils ────────────────────────────────────────────────────────────────
   const cleanValue = (val) => {
@@ -168,6 +186,22 @@ const AcquistatoPage = () => {
     }
   };
 
+  // ─── Toggle mese (fa riferimento alla colonna "MESE" dell'Excel) ──────────
+  const toggleMonth = (m) => {
+    setSelectedMonths((prev) =>
+      prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m],
+    );
+  };
+
+  const toggleAllMonths = (filtered) => {
+    const allSelected = filtered.every((m) => selectedMonths.includes(m));
+    if (allSelected) {
+      setSelectedMonths((prev) => prev.filter((x) => !filtered.includes(x)));
+    } else {
+      setSelectedMonths((prev) => [...new Set([...prev, ...filtered])]);
+    }
+  };
+
   // ─── Fetch ────────────────────────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
@@ -231,7 +265,7 @@ const AcquistatoPage = () => {
               ? Math.round(Number(annoRaw))
               : (dateObj?.getFullYear() ?? null);
 
-          // ── Mese: arrotonda per eliminare decimali ──
+          // ── Mese: legge dalla colonna "MESE" dell'Excel, arrotonda per sicurezza ──
           const meseRaw = row["MESE"] ?? null;
           const _mese =
             meseRaw !== null
@@ -278,6 +312,18 @@ const AcquistatoPage = () => {
     return years;
   }, [sheetData]);
 
+  // ─── Mesi disponibili (usa _mese dalla colonna "MESE", ordinati 1→12) ─────
+  const uniqueMonths = useMemo(() => {
+    if (!sheetData?.length) return [];
+    return [
+      ...new Set(
+        sheetData
+          .map((r) => r._mese)
+          .filter((m) => m !== undefined && m !== null && !isNaN(m)),
+      ),
+    ].sort((a, b) => a - b);
+  }, [sheetData]);
+
   // ─── Dropdown dinamici ────────────────────────────────────────────────────
   const uniqueSuppliers = useMemo(() => {
     if (!sheetData?.length) return [];
@@ -322,6 +368,13 @@ const AcquistatoPage = () => {
     return uniqueYears.filter((y) => String(y).includes(yearSearch.trim()));
   }, [uniqueYears, yearSearch]);
 
+  // ─── Lista mesi filtrata per ricerca interna (cerca per nome mese) ────────
+  const filteredMonthsList = useMemo(() => {
+    if (!monthSearch) return uniqueMonths;
+    const t = monthSearch.toLowerCase();
+    return uniqueMonths.filter((m) => MESI_NOMI[m]?.toLowerCase().includes(t));
+  }, [uniqueMonths, monthSearch]);
+
   // ─── Label toggle ─────────────────────────────────────────────────────────
   const supplierToggleLabel =
     selectedSuppliers.length === 0
@@ -343,6 +396,14 @@ const AcquistatoPage = () => {
       : selectedYears.length === 1
         ? String(selectedYears[0])
         : `${selectedYears.length} Anni`;
+
+  // ─── Label toggle mese ────────────────────────────────────────────────────
+  const monthToggleLabel =
+    selectedMonths.length === 0
+      ? "Tutti i Mesi"
+      : selectedMonths.length === 1
+        ? MESI_NOMI[selectedMonths[0]]
+        : `${selectedMonths.length} Mesi`;
 
   // ─── Aggregazione dati ────────────────────────────────────────────────────
   const { matrixData, kpis } = useMemo(() => {
@@ -379,6 +440,11 @@ const AcquistatoPage = () => {
       // ── Filtro per anno (usa _anno normalizzato) ──
       if (selectedYears.length > 0) {
         if (!selectedYears.includes(row._anno)) return;
+      }
+
+      // ── Filtro per mese (usa _mese dalla colonna "MESE" dell'Excel) ──
+      if (selectedMonths.length > 0) {
+        if (!selectedMonths.includes(row._mese)) return;
       }
 
       if (
@@ -454,6 +520,7 @@ const AcquistatoPage = () => {
     selectedSuppliers,
     selectedFamilies,
     selectedYears,
+    selectedMonths, // ── aggiunto ──
   ]);
 
   // ─── Ricerca tabella ──────────────────────────────────────────────────────
@@ -487,7 +554,8 @@ const AcquistatoPage = () => {
     startDate !== null ||
     selectedSuppliers.length > 0 ||
     selectedFamilies.length > 0 ||
-    selectedYears.length > 0;
+    selectedYears.length > 0 ||
+    selectedMonths.length > 0; // ── aggiunto ──
 
   const dynamicCards = [
     {
@@ -571,6 +639,50 @@ const AcquistatoPage = () => {
                       label={String(y)}
                       checked={selectedYears.includes(y)}
                       onToggle={() => toggleYear(y)}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          </SpkDropdown>
+
+          {/* DROPDOWN MESE — filtra sulla colonna "MESE" dell'Excel */}
+          <SpkDropdown
+            toggleas="a"
+            Customtoggleclass="btn btn-outline-light btn-sm border text-muted no-caret"
+            Toggletext={monthToggleLabel}
+            Arrowicon={true}
+            autoClose="outside"
+          >
+            <div style={{ minWidth: "180px" }}>
+              <DropdownSearch
+                value={monthSearch}
+                onChange={setMonthSearch}
+                placeholder="Cerca mese..."
+              />
+              <Dropdown.Divider className="my-1" />
+              <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+                <MultiSelectItem
+                  label="Tutti i Mesi"
+                  bold
+                  checked={
+                    filteredMonthsList.length > 0 &&
+                    filteredMonthsList.every((m) => selectedMonths.includes(m))
+                  }
+                  onToggle={() => toggleAllMonths(filteredMonthsList)}
+                />
+                <Dropdown.Divider className="my-1" />
+                {filteredMonthsList.length === 0 ? (
+                  <div className="px-3 py-2 text-muted small">
+                    Nessun risultato
+                  </div>
+                ) : (
+                  filteredMonthsList.map((m) => (
+                    <MultiSelectItem
+                      key={m}
+                      label={MESI_NOMI[m]}
+                      checked={selectedMonths.includes(m)}
+                      onToggle={() => toggleMonth(m)}
                     />
                   ))
                 )}
@@ -680,9 +792,11 @@ const AcquistatoPage = () => {
                 setSelectedSuppliers([]);
                 setSelectedFamilies([]);
                 setSelectedYears([]);
+                setSelectedMonths([]); // ── aggiunto ──
                 setSupplierSearch("");
                 setFamilySearch("");
                 setYearSearch("");
+                setMonthSearch(""); // ── aggiunto ──
               }}
               title="Reset filtri"
             >
