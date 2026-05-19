@@ -1,5 +1,8 @@
 import pkg from "pg";
-const { Pool } = pkg;
+const { Pool, types } = pkg;
+
+// NUMERIC = OID 1700
+types.setTypeParser(1700, (val) => parseFloat(val));
 
 // il pool di client Postgre permette alle API
 // di ottenere un client Postgre quando è necessario

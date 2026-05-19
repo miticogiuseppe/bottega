@@ -44,11 +44,13 @@
 
     {
       "id": "STATISTICA_VENDUTO_AGENTE",
-      "path": "Copral\\4.0\\STAVEN-001.xlsx"
+      "path": "Copral\\4.0\\STAVEN-001.xlsx",
+      "idx": ["Agente"]
     },
     {
       "id": "STATISTICA_VENDUTO_CLIENTE",
-      "path": "Copral\\4.0\\STAVEN-001.xlsx"
+      "path": "Copral\\4.0\\STAVEN-001.xlsx",
+      "idx": ["Cliente/Fornitore"]
     },
     {
       "id": "STATISTICA_ACQUISTATO",
