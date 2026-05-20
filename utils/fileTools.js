@@ -25,7 +25,6 @@ function getFileStats(filePath) {
   if (!fs.existsSync(filePath)) return undefined;
   let stats = fs.statSync(filePath);
   return {
-    hash: hash.digest("hex"),
     size: stats.size,
     mtime: stats.mtime,
   };
