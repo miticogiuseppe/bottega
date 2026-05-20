@@ -1,13 +1,15 @@
-import { getPool } from "./utils/db.js";
+import async from "async";
+import express from "express";
+import fs, { createWriteStream } from "fs";
 import cron from "node-cron";
-import fs from "fs";
 import path from "path";
-import xlsx from "xlsx";
 import copyFrom from "pg-copy-streams";
 import { Readable } from "stream";
-import async from "async";
+import xlsx from "xlsx";
+import { createCsvStream } from "./utils/csvStream.js";
+import { getPool } from "./utils/db.js";
 import { doTransaction } from "./utils/db_utils.js";
-import express from "express";
+import { getFileStats } from "./utils/fileTools.js";
 
 const pool = getPool();
 
@@ -139,6 +141,24 @@ function enqueueFile(tenant, file) {
           await client.query(`CREATE INDEX ON "${tableName}" ("${i}")`);
         }
       }
+    });
+
+    // ottiene dati file
+    let fileDate = getFileStats(filePath).mtime;
+    let source = "db";
+
+    // csv cache
+    if (!fs.existsSync("csv_cache")) fs.mkdirSync("csv_cache");
+    let csvFn = path.join("csv_cache", tableName + ".csv");
+    let stream = createCsvStream(content, { lwt: fileDate, source });
+    const nodeReadable = Readable.fromWeb(stream);
+    const fileWriter = createWriteStream(csvFn);
+    await new Promise((resolve, reject) => {
+      nodeReadable.pipe(fileWriter);
+
+      fileWriter.on("finish", resolve);
+      fileWriter.on("error", reject);
+      nodeReadable.on("error", reject);
     });
 
     console.log(`  ✅ ${tenant}/${file.id} importato`);

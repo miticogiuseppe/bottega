@@ -76,8 +76,9 @@ class CsvBuffer {
   }
 }
 
-export function createCsvStream(jsonSheet, jsonData) {
-  const keys = Object.keys(jsonSheet[0] || []);
+export function createCsvStream(sheet, jsonData) {
+  const isArray = Array.isArray(sheet[0]);
+  const keys = Object.keys(sheet[0] || []);
 
   return new ReadableStream({
     async pull(controller) {
@@ -88,12 +89,12 @@ export function createCsvStream(jsonSheet, jsonData) {
       {
         if (jsonData) buffer.push(JSON.stringify(jsonData) + "\n");
       }
-      {
+      if (!isArray) {
         const parts = new Array(keys.length);
         for (let k = 0; k < keys.length; k++) parts[k] = escapeCsv(keys[k]);
         buffer.push(parts.join(",") + "\n");
       }
-      for (const row of jsonSheet) {
+      for (const row of sheet) {
         const parts = new Array(keys.length);
         for (let k = 0; k < keys.length; k++)
           parts[k] = escapeCsv(row[keys[k]]);

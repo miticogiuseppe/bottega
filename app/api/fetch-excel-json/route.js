@@ -1,13 +1,15 @@
+import { check } from "@/utils/api";
+import { createCsvStream } from "@/utils/csvStream";
+import { getPool } from "@/utils/db.js";
+import { readFromDb, readTableInfo } from "@/utils/db_utils";
+import { getFileInfo, getFileStats } from "@/utils/fileTools";
+import { buildTableName } from "@/utils/misc";
+import { getTokenData } from "@/utils/tokenData";
 import fs from "fs";
 import path from "path";
 import * as XLSX from "xlsx";
-import { getTokenData } from "@/utils/tokenData";
-import { getFileInfo, getFileStats } from "@/utils/fileTools";
-import { check } from "@/utils/api";
-import { buildTableName } from "@/utils/misc";
-import { readTableInfo, readFromDb } from "@/utils/db_utils";
-import { getPool } from "@/utils/db.js";
-import { createCsvStream } from "@/utils/csvStream";
+import { createReadStream } from "fs";
+import { Readable } from "stream";
 
 const pool = getPool();
 
@@ -104,12 +106,6 @@ export async function GET(req) {
     const token = await getTokenData();
     const { tenant, role, codice_agente, codice_cliente } = token;
 
-    console.log("--- DEBUG FILTRO ---");
-    console.log("Ruolo:", role);
-    console.log("Agente:", codice_agente);
-    console.log("Cliente:", codice_cliente);
-    console.log("--------------------");
-
     if (!tenant)
       return new Response(JSON.stringify({ error: "Missing tenant" }), {
         status: 400,
@@ -143,15 +139,33 @@ export async function GET(req) {
         headers: { "Content-Type": "application/json" },
       });
 
-    let jsonSheet, fileDate, source;
+    console.log("--- DEBUG FILTRO ---");
+    console.log("Ruolo:", role);
+    console.log("Agente:", codice_agente);
+    console.log("Cliente:", codice_cliente);
+    console.log("--------------------");
 
-    // 1. Prova dal DB
+    let stream;
+
+    let filtering = false;
+    if (role === "AGENTE" && codice_agente) filtering = true;
+    if (role === "CLIENTE" && codice_cliente) filtering = true;
+    const csvFn = path.join("csv_cache", buildTableName(tenant, id) + ".csv");
     const tableName = buildTableName(tenant, id);
     const tableColumns = await readTableInfo(pool, tableName);
 
-    if (tableColumns) {
+    // casistica
+    if (fs.existsSync(csvFn) && !filtering) {
+      // 1) preleva dalla cache CSV
+      console.log(`Fonte: CSV (${csvFn})`);
+
+      const nodeStream = createReadStream(csvFn);
+      stream = Readable.toWeb(nodeStream);
+    } else if (tableColumns) {
+      // 2) preleva dal DB
       console.log(`Fonte: DB (${tableName})`);
 
+      // crea clausola WHERE per il filtraggio
       let filters = [],
         params = [];
       let prog = 0;
@@ -172,42 +186,33 @@ export async function GET(req) {
       let filter =
         filters.length > 0 ? "WHERE " + filters.join(" AND ") : undefined;
 
-      console.log("eseguo query ", new Date());
       const dbRows = await readFromDb(pool, tableName, filter, params);
-      console.log("query eseguita ", new Date());
 
-      jsonSheet = dbRows;
-      console.log("file date ", new Date());
-      fileDate = await getResDate(resource);
-      console.log("fine file date ", new Date());
-      source = "db";
+      let jsonSheet = dbRows;
+      let fileDate = await getResDate(resource);
+      let source = "db";
+
+      stream = createCsvStream(jsonSheet, { lwt: fileDate, source });
     } else {
-      // 2. Fallback su file
-      console.log(`⚠ Tabella "${tableName}" non trovata, fallback su file`);
-      const fileResult = await readFromRes(resource, sheetNameParam);
-      jsonSheet = fileResult.jsonSheet;
-      fileDate = fileResult.fileDate;
-      source = "file";
+      // 3) fallback su file
+      console.log(`Fonte: risorsa originale (${resource})`);
 
-      // 3. Applica filtri
+      const fileResult = await readFromRes(resource, sheetNameParam);
+      let jsonSheet = fileResult.jsonSheet;
+      let fileDate = fileResult.fileDate;
+      let source = "file";
+
+      // applica filtri
       jsonSheet = applyFilters(jsonSheet, role, codice_agente, codice_cliente);
+
+      stream = createCsvStream(jsonSheet, { lwt: fileDate, source });
     }
 
-    console.log("creo stream", new Date());
-    let stream = createCsvStream(jsonSheet, { lwt: fileDate, source });
-
-    console.log("invio risposta ", new Date());
     return new Response(stream, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": 'attachment; filename="export.csv"',
       },
     });
-
-    // let json = JSON.stringify({ data: jsonSheet, lwt: fileDate, source });
-    // return new Response(json, {
-    //   status: 200,
-    //   headers: { "Content-Type": "application/json" },
-    // });
   });
 }
