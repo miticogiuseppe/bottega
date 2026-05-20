@@ -193,7 +193,7 @@ export async function GET(req) {
     console.log("stringify", new Date());
     let json = JSON.stringify({ data: jsonSheet, lwt: fileDate, source });
     console.log("invio risposta ", new Date());
-    return new Response(JSON.stringify({ data: json, lwt: fileDate, source }), {
+    return new Response(json, {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
