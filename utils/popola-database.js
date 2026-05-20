@@ -7,7 +7,7 @@ export async function caricaAgentiDaCSV() {
   const agenti = [];
 
   // 1. Leggiamo il file CSV generato da Python
-  fs.createReadStream("agenti_per_database.csv")
+  fs.createReadStream("data\\agenti_per_database.csv")
     .pipe(csv())
     .on("data", (row) => agenti.push(row))
     .on("end", async () => {

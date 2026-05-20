@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"next dev\" \"node --env-file=.env cron.js\"",
+    "dev": "concurrently \"next dev\" \"node --env-file=.env server.js\"",
     "build": "next build",
-    "start": "concurrently \"next start\" \"node --env-file=.env cron.js\"",
+    "start": "concurrently \"next start\" \"node --env-file=.env server.js\"",
     "lint": "eslint .",
     "postcss": "sass ./public/assets/scss/style.scss ./public/assets/css/style.css && postcss ./public/assets/css/style.css -o ./public/assets/css/style.css",
     "sass": "sass ./public/assets/scss/:./public/assets/css/",

@@ -8,7 +8,11 @@ import argon2 from "argon2";
 export async function POST(req) {
   try {
     // 1. Percorso del file CSV (nella root del progetto)
-    const filePath = path.join(process.cwd(), "agenti_per_database.csv");
+    const filePath = path.join(
+      process.cwd(),
+      "data",
+      "agenti_per_database.csv",
+    );
 
     if (!fs.existsSync(filePath)) {
       return NextResponse.json(
