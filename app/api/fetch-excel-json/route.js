@@ -190,12 +190,12 @@ export async function GET(req) {
       jsonSheet = applyFilters(jsonSheet, role, codice_agente, codice_cliente);
     }
 
-    return new Response(
-      JSON.stringify({ data: jsonSheet, lwt: fileDate, source }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    console.log("stringify", new Date());
+    let json = JSON.stringify({ data: jsonSheet, lwt: fileDate, source });
+    console.log("invio risposta ", new Date());
+    return new Response(JSON.stringify({ data: json, lwt: fileDate, source }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   });
 }
