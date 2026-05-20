@@ -1,7 +1,9 @@
 import fs from "fs";
 import csv from "csv-parser";
-import { pool } from "@/utils/db";
+import { getPool } from "@/utils/db";
 import argon2 from "argon2";
+
+const pool = getPool();
 
 export async function caricaAgentiDaCSV() {
   const agenti = [];

@@ -1,4 +1,4 @@
-import { pool } from "./utils/db.js";
+import { getPool } from "./utils/db.js";
 import cron from "node-cron";
 import fs from "fs";
 import path from "path";
@@ -8,6 +8,8 @@ import { Readable } from "stream";
 import async from "async";
 import { doTransaction } from "./utils/db_utils.js";
 import express from "express";
+
+const pool = getPool();
 
 const app = express();
 app.use(express.json());

@@ -6,6 +6,9 @@ import { getFileInfo } from "@/utils/fileTools";
 import { check } from "@/utils/api";
 import { buildTableName } from "@/utils/misc";
 import { readTableInfo, readFromDb } from "@/utils/db_utils";
+import { getPool } from "@/utils/db.js";
+
+const pool = getPool();
 
 const agenteCols = ["Agente", "Des. Agente", "Descrizione Agente"];
 const clienteCols = [
@@ -168,7 +171,9 @@ export async function GET(req) {
       let filter =
         filters.length > 0 ? "WHERE " + filters.join(" AND ") : undefined;
 
+      console.log("eseguo query ", new Date());
       const dbRows = await readFromDb(pool, tableName, filter, params);
+      console.log("query eseguita ", new Date());
 
       jsonSheet = dbRows;
       fileDate = await getFileDate(resource);

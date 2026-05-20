@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import csv from "csv-parser";
-import { pool } from "@/utils/db"; // Usa il tuo helper per il DB
+import { getPool } from "@/utils/db"; // Usa il tuo helper per il DB
 import argon2 from "argon2";
+
+const pool = getPool();
 
 export async function POST(req) {
   try {
