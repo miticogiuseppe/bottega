@@ -159,7 +159,9 @@ export async function GET(req) {
       // 1) preleva dalla cache CSV
       console.log(`Fonte: CSV (${csvFn})`);
 
-      const nodeStream = createReadStream(csvFn);
+      const nodeStream = createReadStream(csvFn, {
+        highWaterMark: 4 * 1024 * 1024,
+      });
       stream = Readable.toWeb(nodeStream);
     } else if (tableColumns) {
       // 2) preleva dal DB
