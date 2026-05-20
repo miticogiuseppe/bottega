@@ -12,6 +12,7 @@ import { orderSheet, parseDates } from "@/utils/excelUtils";
 import Preloader from "@/utils/Preloader";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
+import { csvDecode } from "@/utils/csvDecode";
 
 const mulini = {
   nome: "Mulini",
@@ -47,7 +48,7 @@ export default function PaginaMulini() {
       const response = await fetch(
         "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
       );
-      const json = await response.json();
+      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data ordine", "Data cons. rich."]);
       data = orderSheet(data, ["Data ordine"], ["asc"]);
@@ -63,7 +64,7 @@ export default function PaginaMulini() {
       const response = await fetch(
         "/api/fetch-excel-json?id=MULINI&sheet=Foglio1",
       );
-      const json = await response.json();
+      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["DATA"]);
       data = orderSheet(data, ["DATA"], ["asc"]);

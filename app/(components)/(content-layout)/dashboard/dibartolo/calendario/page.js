@@ -1,7 +1,7 @@
 "use client";
-import OrderCalendar from "@/components/OrderCalendar";
 import OrdersDibartolo from "@/components/OrdersDibartolo";
-import { loadFirstSheet, parseDates } from "@/utils/excelUtils";
+import { csvDecode } from "@/utils/csvDecode";
+import { parseDates } from "@/utils/excelUtils";
 import { useEffect, useState } from "react";
 
 export default function Calendar() {
@@ -11,9 +11,9 @@ export default function Calendar() {
     // Carica automaticamente il file Excel
     const fetchOrders = async () => {
       const response = await fetch(
-        "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db"
+        "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
       );
-      const json = await response.json();
+      let json = await csvDecode(response.body);
       let newOrders = json.data;
       newOrders = parseDates(newOrders, ["Data cons. rich."]);
       setOrders(newOrders);

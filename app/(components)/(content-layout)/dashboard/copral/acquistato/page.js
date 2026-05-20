@@ -10,6 +10,7 @@ import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/s
 import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import { useRouter } from "next/navigation";
+import { csvDecode } from "@/utils/csvDecode";
 
 // ─── Formattatori ─────────────────────────────────────────────────────────────
 const formatNum = (val, decimals = 2) => {
@@ -221,7 +222,7 @@ const AcquistatoPage = () => {
         const response = await fetch(
           "/api/fetch-excel-json?id=STATISTICA_ACQUISTATO",
         );
-        const json = await response.json();
+        let json = await csvDecode(response.body);
         const rawData = json?.data ?? [];
 
         // ── DEBUG temporaneo: verifica nomi colonne e valori ──

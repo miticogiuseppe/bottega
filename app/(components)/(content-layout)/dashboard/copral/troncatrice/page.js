@@ -12,6 +12,7 @@ import { orderSheet, parseDates, parseTimes } from "@/utils/excelUtils";
 import Preloader from "@/utils/Preloader";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
+import { csvDecode } from "@/utils/csvDecode";
 
 const resources = {
   fileStorico: "/api/download-resource?id=STORICO_TRONCATRICE",
@@ -33,7 +34,7 @@ export default function PaginaTroncatrice() {
       const response = await fetch(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
-      const json = await response.json();
+      let json = await csvDecode(response.body);
       let data = json.data;
 
       data = parseDates(data, ["Data ord"]);
@@ -50,7 +51,7 @@ export default function PaginaTroncatrice() {
       const response = await fetch(
         "/api/fetch-excel-json?id=TRONCATRICE_ESTESO&sheet=Foglio1",
       );
-      const json = await response.json();
+      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Timestamp"]);
       data = parseTimes(data, ["Tempo"]);

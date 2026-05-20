@@ -12,6 +12,7 @@ import { orderSheet, parseDates } from "@/utils/excelUtils";
 import Preloader from "@/utils/Preloader";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
+import { csvDecode } from "@/utils/csvDecode";
 
 const resources = {
   fileStorico: "/api/download-resource?id=STORICO_IMBALLATRICE",
@@ -33,7 +34,7 @@ export default function PaginaImballatrice() {
       const response = await fetch(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
-      const json = await response.json();
+      let json = await csvDecode(response.body);
       let data = json.data;
 
       data = parseDates(data, ["Data ord"]);
@@ -50,7 +51,7 @@ export default function PaginaImballatrice() {
       const response = await fetch(
         "/api/fetch-excel-json?id=imballatrice_a&sheet=Foglio1",
       );
-      const json = await response.json();
+      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data"]);
       data = orderSheet(data, ["Data"], ["asc"]);

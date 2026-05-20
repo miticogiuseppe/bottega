@@ -10,6 +10,7 @@ import Preloader from "@/utils/Preloader";
 import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
+import { csvDecode } from "@/utils/csvDecode";
 
 const formatNum = (val, decimals = 2) => {
   const n = Number(val) || 0;
@@ -120,7 +121,7 @@ const StatisticheVendutoCopral = () => {
           "/api/fetch-excel-json?id=STATISTICA_VENDUTO_AGENTE",
           { signal: controller.signal },
         );
-        const json = await response.json();
+        let json = await csvDecode(response.body);
         const rawData = json?.data ?? [];
         const parsedData = rawData.map((row) => {
           const serialDate = row["Data"];

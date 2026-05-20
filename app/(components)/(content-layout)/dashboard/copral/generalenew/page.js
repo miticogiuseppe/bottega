@@ -25,6 +25,7 @@ import { useTranslations } from "next-intl";
 import AppmerceTable from "@/components/AppmerceTable";
 import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 import DateRangeFilter from "@/components/Copral/DaterangeFilter";
+import { csvDecode } from "@/utils/csvDecode";
 
 const Spkapexcharts = dynamic(
   () =>
@@ -85,7 +86,7 @@ const Ecommerce = () => {
       const response = await fetch(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
-      let json = await response.json();
+      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data ord"]);
       setSheetData(data);

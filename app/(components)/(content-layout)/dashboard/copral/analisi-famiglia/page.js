@@ -11,6 +11,7 @@ import Preloader from "@/utils/Preloader";
 import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
+import { csvDecode } from "@/utils/csvDecode";
 
 const formatNum = (val, decimals = 2) => {
   const n = Number(val) || 0;
@@ -118,7 +119,7 @@ const AnalisiPerFamiglia = () => {
           { signal: controller.signal },
         );
         if (!response.ok) throw new Error(`Errore HTTP: ${response.status}`);
-        const json = await response.json();
+        let json = await csvDecode(response.body);
         const rawData = json?.data ?? [];
         const parsedData = rawData.map((row) => ({
           ...row,

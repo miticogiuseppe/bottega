@@ -7,6 +7,7 @@ import { check } from "@/utils/api";
 import { buildTableName } from "@/utils/misc";
 import { readTableInfo, readFromDb } from "@/utils/db_utils";
 import { getPool } from "@/utils/db.js";
+import { createCsvStream } from "@/utils/csvStream";
 
 const pool = getPool();
 
@@ -176,7 +177,9 @@ export async function GET(req) {
       console.log("query eseguita ", new Date());
 
       jsonSheet = dbRows;
+      console.log("file date ", new Date());
       fileDate = await getResDate(resource);
+      console.log("fine file date ", new Date());
       source = "db";
     } else {
       // 2. Fallback su file
@@ -190,12 +193,21 @@ export async function GET(req) {
       jsonSheet = applyFilters(jsonSheet, role, codice_agente, codice_cliente);
     }
 
-    console.log("stringify", new Date());
-    let json = JSON.stringify({ data: jsonSheet, lwt: fileDate, source });
+    console.log("creo stream", new Date());
+    let stream = createCsvStream(jsonSheet, { lwt: fileDate, source });
+
     console.log("invio risposta ", new Date());
-    return new Response(json, {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": 'attachment; filename="export.csv"',
+      },
     });
+
+    // let json = JSON.stringify({ data: jsonSheet, lwt: fileDate, source });
+    // return new Response(json, {
+    //   status: 200,
+    //   headers: { "Content-Type": "application/json" },
+    // });
   });
 }

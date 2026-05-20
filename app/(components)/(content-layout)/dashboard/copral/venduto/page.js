@@ -8,6 +8,7 @@ import Preloader from "@/utils/Preloader";
 import { formatCurrency } from "@/utils/currency";
 import VendutoChart from "@/components/VendutoChart";
 import { useRouter } from "next/navigation"; // 1. Importa il router
+import { csvDecode } from "@/utils/csvDecode";
 
 const Venduto = () => {
   const router = useRouter(); // 2. Inizializza il router
@@ -43,7 +44,7 @@ const Venduto = () => {
         const response = await fetch(
           "/api/fetch-excel-json?id=TOP20_VENDUTO&sheet=TOP20_2025",
         );
-        const json = await response.json();
+        let json = await csvDecode(response.body);
 
         if (json.data) {
           // ... (Tutta la tua logica di filtraggio e map che avevi già scritto)

@@ -2,6 +2,7 @@
 import OrderCalendar from "@/components/OrderCalendar";
 import { parseDates } from "@/utils/excelUtils";
 import { useEffect, useState } from "react";
+import { csvDecode } from "@/utils/csvDecode";
 
 export default function Home() {
   const [orders, setOrders] = useState([]);
@@ -13,7 +14,7 @@ export default function Home() {
       const response = await fetch(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
-      const json = await response.json();
+      let json = await csvDecode(response.body);
 
       setFileDate(new Date(json.lwt));
 

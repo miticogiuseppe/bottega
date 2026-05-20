@@ -7,12 +7,12 @@ import MacchinaDashboard from "@/components/MacchinaDashboard";
 import PeriodDropdown from "@/components/PeriodDropdown";
 import Pageheader from "@/shared/layouts-components/page-header/pageheader";
 import Seo from "@/shared/layouts-components/seo/seo";
+import { csvDecode } from "@/utils/csvDecode";
 import { computeDate, fmt } from "@/utils/dateUtils";
 import { orderSheet, parseDates } from "@/utils/excelUtils";
 import Preloader from "@/utils/Preloader";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
-import AppmerceIngredientsComparison from "@/components/AppmerceIngredientsComparison";
 
 const variegati = {
   nome: "Variegati",
@@ -43,7 +43,7 @@ export default function PaginaVariegati() {
       const response = await fetch(
         "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
       );
-      const json = await response.json();
+      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data ordine", "Data cons. rich."]);
       data = orderSheet(data, ["Data ordine"], ["asc"]);
@@ -59,7 +59,7 @@ export default function PaginaVariegati() {
       const response = await fetch(
         "/api/fetch-excel-json?id=VARIEGATI&sheet=Foglio1",
       );
-      const json = await response.json();
+      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["DATA"]);
       data = orderSheet(data, ["DATA"], ["asc"]);
