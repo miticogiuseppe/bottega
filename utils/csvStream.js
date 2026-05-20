@@ -89,22 +89,15 @@ export function createCsvStream(jsonSheet, jsonData) {
         if (jsonData) buffer.push(JSON.stringify(jsonData) + "\n");
       }
       {
-        let line = escapeCsv(keys[0]);
-        for (let k = 1; k < keys.length; k++) {
-          line += ",";
-          line += escapeCsv(keys[k]);
-        }
-
-        buffer.push(line + "\n");
+        const parts = new Array(keys.length);
+        for (let k = 0; k < keys.length; k++) parts[k] = escapeCsv(keys[k]);
+        buffer.push(parts.join(",") + "\n");
       }
       for (const row of jsonSheet) {
-        let line = escapeCsv(row[keys[0]]);
-        for (let k = 1; k < keys.length; k++) {
-          line += ",";
-          line += escapeCsv(row[keys[k]]);
-        }
-
-        buffer.push(line + "\n");
+        const parts = new Array(keys.length);
+        for (let k = 0; k < keys.length; k++)
+          parts[k] = escapeCsv(row[keys[k]]);
+        buffer.push(parts.join(",") + "\n");
         if (buffer.length >= MIN) controller.enqueue(buffer.flush());
       }
 
