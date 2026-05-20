@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import * as XLSX from "xlsx";
 import { getTokenData } from "@/utils/tokenData";
-import { getFileInfo } from "@/utils/fileTools";
+import { getFileInfo, getFileStats } from "@/utils/fileTools";
 import { check } from "@/utils/api";
 import { buildTableName } from "@/utils/misc";
 import { readTableInfo, readFromDb } from "@/utils/db_utils";
@@ -22,7 +22,7 @@ const agentMapping = fs.existsSync(mappingPath)
   : {};
 
 // Legge dal file (logica attuale invariata)
-async function readFromFile(resource, sheetNameParam) {
+async function readFromRes(resource, sheetNameParam) {
   const filePath = path.join(process.env.DRIVE_PATH, resource.path);
   const jsonFile = path.join(
     process.env.DRIVE_PATH,
@@ -53,7 +53,7 @@ async function readFromFile(resource, sheetNameParam) {
 
   return { jsonSheet, fileDate };
 }
-async function getFileDate(resource) {
+async function getResDate(resource) {
   const filePath = path.join(process.env.DRIVE_PATH, resource.path);
   const jsonFile = path.join(
     process.env.DRIVE_PATH,
@@ -61,7 +61,7 @@ async function getFileDate(resource) {
     path.parse(resource.path).name + ".json",
   );
 
-  const fileInfo = await getFileInfo(jsonFile);
+  const fileInfo = getFileStats(jsonFile) ?? getFileStats(filePath);
   return fileInfo.mtime;
 }
 
@@ -176,12 +176,12 @@ export async function GET(req) {
       console.log("query eseguita ", new Date());
 
       jsonSheet = dbRows;
-      fileDate = await getFileDate(resource);
+      fileDate = await getResDate(resource);
       source = "db";
     } else {
       // 2. Fallback su file
       console.log(`⚠ Tabella "${tableName}" non trovata, fallback su file`);
-      const fileResult = await readFromFile(resource, sheetNameParam);
+      const fileResult = await readFromRes(resource, sheetNameParam);
       jsonSheet = fileResult.jsonSheet;
       fileDate = fileResult.fileDate;
       source = "file";
