@@ -60,18 +60,11 @@ export async function doQuery(pool, query, args) {
 }
 
 export async function readFromDb(pool, tableName, filter, params) {
-  try {
-    const result = await pool.query(
-      `SELECT * FROM "${tableName}" ${filter ?? ""}`,
-      params ?? [],
-    );
-    if (result.rows.length === 0) return null;
-    return result.rows;
-  } catch (err) {
-    // Tabella non esiste ancora
-    if (err.code === "42P01") return null;
-    throw err;
-  }
+  const result = await pool.query(
+    `SELECT * FROM "${tableName}" ${filter ?? ""}`,
+    params ?? [],
+  );
+  return result.rows;
 }
 export async function readTableInfo(pool, tableName) {
   let query2 = await pool.query(

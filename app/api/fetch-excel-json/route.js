@@ -171,20 +171,23 @@ export async function GET(req) {
       let filters = [],
         params = [];
       let prog = 0;
-      if (role === "AGENTE" && codice_agente)
+      if (role === "AGENTE" && codice_agente) {
         for (let col of agenteCols)
           if (tableColumns.includes(col)) {
-            filters.push(`"${col}" = $${++prog}`);
+            filters.push(`("${col}" = $${++prog} OR "${col}" = $${++prog})`);
             params.push(codice_agente);
+            params.push(agentMapping[codice_agente]);
             break;
           }
-      if (role === "CLIENTE" && codice_cliente)
+      }
+      if (role === "CLIENTE" && codice_cliente) {
         for (let col of clienteCols)
           if (tableColumns.includes(col)) {
             filters.push(`"${col}" = $${++prog}`);
             params.push(codice_cliente);
             break;
           }
+      }
       let filter =
         filters.length > 0 ? "WHERE " + filters.join(" AND ") : undefined;
 
