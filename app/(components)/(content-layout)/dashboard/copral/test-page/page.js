@@ -25,6 +25,7 @@ import { IoIosCalendar } from "react-icons/io";
 import { PiPackage } from "react-icons/pi";
 import { useTranslations } from "next-intl";
 import AppmerceTable from "@/components/AppmerceTable";
+import { csvDecode } from "@/utils/csvDecode";
 
 // Componente ApexCharts caricato dinamicamente
 const Spkapexcharts = dynamic(
@@ -49,7 +50,7 @@ const Ecommerce = () => {
       const response = await fetch(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
-      let json = await response.json();
+      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data ord"]); // Converte le date
       setSheetData(data);

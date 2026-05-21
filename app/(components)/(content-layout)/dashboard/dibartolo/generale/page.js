@@ -16,12 +16,13 @@ import { Card, Col, Row } from "react-bootstrap";
 import { FaUsers } from "react-icons/fa6";
 import { IoIosCalendar } from "react-icons/io";
 import { PiPackage } from "react-icons/pi";
+import { csvDecode } from "@/utils/csvDecode";
 
 // Componente ApexCharts caricato dinamicamente
 const Spkapexcharts = dynamic(
   () =>
     import("@/shared/@spk-reusable-components/reusable-plugins/spk-apexcharts"),
-  { ssr: false }
+  { ssr: false },
 );
 
 // Opzioni base per ilgrafico a barre
@@ -85,9 +86,9 @@ const Ecommerce = () => {
     const fetchData = async () => {
       // 1. Fetch del foglio Excel
       const response = await fetch(
-        "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db"
+        "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
       );
-      let json = await response.json();
+      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data ordine", "Data cons. rich."]); // Converte le date in oggetti Moment/Date
       setSheetData(data);
@@ -115,7 +116,7 @@ const Ecommerce = () => {
     // ----------------------- Logica per Tabella (Ordini recenti)
 
     const sortedData = filteredData.sort((a, b) =>
-      a["Data ordine"].isBefore(b["Data ordine"]) ? 1 : -1
+      a["Data ordine"].isBefore(b["Data ordine"]) ? 1 : -1,
     );
     const uniqData = _.uniqBy(sortedData, "Nr. ord.");
     setRecentOrders(uniqData);
@@ -129,21 +130,21 @@ const Ecommerce = () => {
     // Totale clienti unici
     const uniqueCustomersCount = extractUniques(
       filteredData,
-      "Ragione sociale"
+      "Ragione sociale",
     ).length;
     setTotalUniqueCustomers(uniqueCustomersCount);
 
     // ----------------------- Logica per Grafico a Barre (Analisi Quantità)
     // Filtra i dati escludendo la famiglia "IMBALLAGGI"
     const filteredDataExcludingImballaggi = filteredData.filter(
-      (item) => item["Descrizione famiglia"] !== "IMBALLAGGI"
+      (item) => item["Descrizione famiglia"] !== "IMBALLAGGI",
     );
 
     // Somma la quantità per ogni "Descrizione famiglia"
     const counters = sumByKey(
       filteredDataExcludingImballaggi,
       "Descrizione famiglia",
-      "Qta/kg da ev."
+      "Qta/kg da ev.",
     );
 
     // Ordina i risultati e prepara le serie per ApexCharts
