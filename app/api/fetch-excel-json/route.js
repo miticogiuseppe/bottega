@@ -174,9 +174,15 @@ export async function GET(req) {
       if (role === "AGENTE" && codice_agente) {
         for (let col of agenteCols)
           if (tableColumns.includes(col)) {
-            filters.push(`("${col}" = $${++prog} OR "${col}" = $${++prog})`);
-            params.push(codice_agente);
-            params.push(agentMapping[codice_agente]);
+            let nomeAgente = agentMapping[codice_agente];
+            if (nomeAgente) {
+              filters.push(`("${col}" = $${++prog} OR "${col}" = $${++prog})`);
+              params.push(codice_agente);
+              params.push(agentMapping[codice_agente]);
+            } else {
+              filters.push(`"${col}" = $${++prog}`);
+              params.push(codice_agente);
+            }
             break;
           }
       }
