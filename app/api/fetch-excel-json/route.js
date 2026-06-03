@@ -227,7 +227,7 @@ export async function GET(req) {
       stream = createGzipStream(uncompressedStream);
     }
 
-    return new Response(compressed, {
+    return new Response(stream, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": 'attachment; filename="export.csv"',
