@@ -78,7 +78,7 @@ class CsvBuffer {
   }
 }
 
-export function createGzipStream(sourceStream, level = 2) {
+export function createGzipStream(sourceStream, level = 6) {
   const gzip = createGzip({ level, chunkSize: 1024 * 1024 });
 
   return new ReadableStream({
