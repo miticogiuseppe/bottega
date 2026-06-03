@@ -151,7 +151,7 @@ function enqueueFile(tenant, file) {
     if (!fs.existsSync("csv_cache")) fs.mkdirSync("csv_cache");
     let csvFn = path.join("csv_cache", tableName + ".csv");
     let stream = createCsvStream(content, { lwt: fileDate, source });
-    const compressed = createGzipStream(stream, 1);
+    const compressed = createGzipStream(stream, 6);
     const nodeReadable = Readable.fromWeb(compressed);
     const fileWriter = createWriteStream(csvFn);
     await new Promise((resolve, reject) => {

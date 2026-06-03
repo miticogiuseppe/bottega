@@ -207,7 +207,7 @@ export async function GET(req) {
         lwt: fileDate,
         source,
       });
-      stream = createGzipStream(uncompressedStream, 1);
+      stream = createGzipStream(uncompressedStream);
     } else {
       // 3) fallback su file
       console.log(`Fonte: risorsa originale (${resource})`);
@@ -224,7 +224,7 @@ export async function GET(req) {
         lwt: fileDate,
         source,
       });
-      stream = createGzipStream(uncompressedStream, 1);
+      stream = createGzipStream(uncompressedStream);
     }
 
     return new Response(compressed, {
