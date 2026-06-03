@@ -69,7 +69,7 @@ export async function readFromDb(pool, tableName, filter, params) {
 export async function readTableInfo(pool, tableName) {
   let query2 = await pool.query(
     `
-      SELECT column_name
+      SELECT column_name, data_type
       FROM information_schema.columns
       WHERE table_schema = 'public'
       AND table_name = '${tableName}'
@@ -79,5 +79,8 @@ export async function readTableInfo(pool, tableName) {
   );
 
   if (query2.rows.length === 0) return undefined;
-  return query2.rows.map((x) => x.column_name);
+  return query2.rows.reduce((acc, x) => {
+    acc[x.column_name] = x.data_type;
+    return acc;
+  }, {});
 }

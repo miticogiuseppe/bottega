@@ -173,9 +173,9 @@ export async function GET(req) {
       let prog = 0;
       if (role === "AGENTE" && codice_agente) {
         for (let col of agenteCols)
-          if (tableColumns.includes(col)) {
+          if (tableColumns[col]) {
             let nomeAgente = agentMapping[codice_agente];
-            if (nomeAgente) {
+            if (nomeAgente && tableColumns[col] === "character varying") {
               filters.push(`("${col}" = $${++prog} OR "${col}" = $${++prog})`);
               params.push(codice_agente);
               params.push(agentMapping[codice_agente]);
@@ -188,7 +188,7 @@ export async function GET(req) {
       }
       if (role === "CLIENTE" && codice_cliente) {
         for (let col of clienteCols)
-          if (tableColumns.includes(col)) {
+          if (tableColumns[col]) {
             filters.push(`"${col}" = $${++prog}`);
             params.push(codice_cliente);
             break;
