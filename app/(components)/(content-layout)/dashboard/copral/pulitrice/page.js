@@ -12,6 +12,7 @@ import { orderSheet, parseDates, parseTimes } from "@/utils/excelUtils";
 import Preloader from "@/utils/Preloader";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
+import { csvDecode } from "@/utils/csvDecode";
 
 const resources = {
   // fileStorico: "/api/download-resource?id=STORICO_IMBALLATRICE",
@@ -31,11 +32,11 @@ export default function PaginaPulitrice() {
 
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch(
+      const response = await fetch(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
-      const resp = await res.json();
-      let data = resp.data;
+      let json = await csvDecode(response.body);
+      let data = json.data;
 
       data = parseDates(data, ["Data ord"]);
       data = orderSheet(data, ["Data ord"], ["asc"]);
@@ -48,9 +49,11 @@ export default function PaginaPulitrice() {
 
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch("/api/fetch-excel-json?id=pulitrice&sheet=Arsv");
-      const resp = await res.json();
-      let data = resp.data;
+      const response = await fetch(
+        "/api/fetch-excel-json?id=pulitrice&sheet=Arsv",
+      );
+      let json = await csvDecode(response.body);
+      let data = json.data;
       data = parseDates(data, ["Data"]);
       data = parseTimes(data, ["ora_inizio", "ora_fine", "durata"]);
       data = orderSheet(data, ["Data"], ["asc"]);
