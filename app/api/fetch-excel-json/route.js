@@ -1,5 +1,5 @@
 import { check } from "@/utils/api";
-import { createCsvStream } from "@/utils/csvStream";
+import { createCsvStream, createGzipStream } from "@/utils/csvStream";
 import { getPool } from "@/utils/db.js";
 import { readFromDb, readTableInfo } from "@/utils/db_utils";
 import { getFileInfo, getFileStats } from "@/utils/fileTools";
@@ -219,10 +219,13 @@ export async function GET(req) {
       stream = createCsvStream(jsonSheet, { lwt: fileDate, source });
     }
 
-    return new Response(stream, {
+    const compressed = createGzipStream(stream, 1);
+
+    return new Response(compressed, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": 'attachment; filename="export.csv"',
+        "Content-Encoding": "gzip",
       },
     });
   });

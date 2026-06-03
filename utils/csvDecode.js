@@ -101,8 +101,6 @@ function splitLines(buffer) {
 }
 
 export async function csvDecode(webStream) {
-  console.log("DECODING");
-
   const reader = webStream.getReader();
   const decoder = new TextDecoder();
 
