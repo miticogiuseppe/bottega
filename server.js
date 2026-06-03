@@ -6,7 +6,7 @@ import path from "path";
 import copyFrom from "pg-copy-streams";
 import { Readable } from "stream";
 import xlsx from "xlsx";
-import { createCsvStream } from "./utils/csvStream.js";
+import { createCsvStream, createGzipStream } from "./utils/csvStream.js";
 import { getPool } from "./utils/db.js";
 import { doTransaction } from "./utils/db_utils.js";
 import { getFileStats } from "./utils/fileTools.js";
@@ -151,7 +151,8 @@ function enqueueFile(tenant, file) {
     if (!fs.existsSync("csv_cache")) fs.mkdirSync("csv_cache");
     let csvFn = path.join("csv_cache", tableName + ".csv");
     let stream = createCsvStream(content, { lwt: fileDate, source });
-    const nodeReadable = Readable.fromWeb(stream);
+    const compressed = createGzipStream(stream, 1);
+    const nodeReadable = Readable.fromWeb(compressed);
     const fileWriter = createWriteStream(csvFn);
     await new Promise((resolve, reject) => {
       nodeReadable.pipe(fileWriter);

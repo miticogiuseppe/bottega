@@ -203,7 +203,11 @@ export async function GET(req) {
       let fileDate = await getResDate(resource);
       let source = "db";
 
-      stream = createCsvStream(jsonSheet, { lwt: fileDate, source });
+      let uncompressedStream = createCsvStream(jsonSheet, {
+        lwt: fileDate,
+        source,
+      });
+      stream = createGzipStream(uncompressedStream, 1);
     } else {
       // 3) fallback su file
       console.log(`Fonte: risorsa originale (${resource})`);
@@ -216,10 +220,12 @@ export async function GET(req) {
       // applica filtri
       jsonSheet = applyFilters(jsonSheet, role, codice_agente, codice_cliente);
 
-      stream = createCsvStream(jsonSheet, { lwt: fileDate, source });
+      let uncompressedStream = createCsvStream(jsonSheet, {
+        lwt: fileDate,
+        source,
+      });
+      stream = createGzipStream(uncompressedStream, 1);
     }
-
-    const compressed = createGzipStream(stream, 1);
 
     return new Response(compressed, {
       headers: {
