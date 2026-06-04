@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import { fetchCsvCached } from "@/utils/csvDecode";
 import GlobalContext from "@/context/GlobalContext";
+import { useContext } from "react";
 
 const variegati = {
   nome: "Variegati",

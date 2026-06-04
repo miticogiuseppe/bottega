@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
 import GlobalContext from "@/context/GlobalContext";
+import { useContext } from "react";
 
 // ─── Formattatori ─────────────────────────────────────────────────────────────
 const formatNum = (val, decimals = 2) => {

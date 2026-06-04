@@ -145,16 +145,15 @@ export async function csvDecode(webStream) {
 }
 
 export async function fetchCsvCached(input, init, user) {
-  input += "§" + user ?? "";
-  let cached = await dbGetItem(input);
+  let key = input + "§" + (user ?? "");
+  let cached = await dbGetItem(key);
 
-  let input2 = input;
-  if (cached) input2 += "&lwt=" + encodeURIComponent(cached.lwt);
+  if (cached) input += "&lwt=" + encodeURIComponent(cached.lwt);
 
-  const response = await fetch(input2, init);
+  const response = await fetch(input, init);
   if (response.status === 204) return cached;
 
   let json = await csvDecode(response.body);
-  await dbSetItem(input, json);
+  await dbSetItem(key, json);
   return json;
 }

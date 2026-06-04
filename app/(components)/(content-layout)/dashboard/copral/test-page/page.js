@@ -28,6 +28,7 @@ import AppmerceTable from "@/components/AppmerceTable";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
 import GlobalContext from "@/context/GlobalContext";
+import { useContext } from "react";
 
 // Componente ApexCharts caricato dinamicamente
 const Spkapexcharts = dynamic(

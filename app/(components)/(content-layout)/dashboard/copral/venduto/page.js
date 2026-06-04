@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"; // 1. Importa il router
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
 import GlobalContext from "@/context/GlobalContext";
+import { useContext } from "react";
 
 const Venduto = () => {
   const { username } = useContext(GlobalContext);

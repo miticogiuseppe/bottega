@@ -15,6 +15,7 @@ import { Card, Col, Row } from "react-bootstrap";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
 import GlobalContext from "@/context/GlobalContext";
+import { useContext } from "react";
 
 const resources = {
   fileStorico: "/api/download-resource?id=STORICO_IMBALLATRICE",

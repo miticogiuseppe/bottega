@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
 import GlobalContext from "@/context/GlobalContext";
+import { useContext } from "react";
 
 export default function Home() {
   const { username } = useContext(GlobalContext);
