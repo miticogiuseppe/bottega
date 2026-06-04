@@ -1,7 +1,7 @@
 import { check } from "@/utils/api";
 import { createCsvStream, createGzipStream } from "@/utils/csvStream";
 import { getPool } from "@/utils/db.js";
-import { readFromDb, readTableInfo, readLwt } from "@/utils/db_utils";
+import { dbReadData, readTableInfo, dbReadLwt } from "@/utils/db_utils";
 import { getFileInfo, getFileStats } from "@/utils/fileTools";
 import { buildTableName } from "@/utils/misc";
 import { getTokenData } from "@/utils/tokenData";
@@ -128,7 +128,7 @@ export async function GET(req) {
     console.log("--------------------");
 
     // get cache lwt
-    const cacheLwt = await readLwt(pool, tenant, resource);
+    const cacheLwt = await dbReadLwt(pool, tenant, resource);
 
     // get lwt
     let fileDate = cacheLwt;
@@ -199,7 +199,7 @@ export async function GET(req) {
           filters.length > 0 ? "WHERE " + filters.join(" AND ") : undefined;
 
         // ottiene dal db dati e lwt
-        const res = await readFromDb(pool, tableName, filter, params);
+        const res = await dbReadData(pool, tableName, filter, params);
 
         // manda stream in output
         let jsonSheet = res.dbRows;
