@@ -127,15 +127,13 @@ export async function GET(req) {
     console.log("Cliente:", codice_cliente);
     console.log("--------------------");
 
-    // get cache lwt
-    const cacheLwt = await dbReadLwt(pool, tenant, resource);
-
     // get lwt
-    let fileDate = cacheLwt;
-    if (!fileDate) fileDate = await getResDate(resource);
+    const cacheLwt = await dbReadLwt(pool, tenant, resource);
+    const fileLwt = await getResDate(resource);
+    const merge_lwt = (cacheLwt ?? fileLwt).toISOString();
 
     // compare lwt
-    if (lwt === fileDate.toISOString())
+    if (lwt === merge_lwt)
       return new Response(null, {
         status: 204,
       });
@@ -204,7 +202,7 @@ export async function GET(req) {
         // manda stream in output
         let jsonSheet = res.dbRows;
         let source = "db";
-        fileDate = res.lwt;
+        let fileDate = res.lwt;
 
         let uncompressedStream = createCsvStream(jsonSheet, {
           lwt: fileDate,
@@ -219,6 +217,7 @@ export async function GET(req) {
       // legge il file
       const fileResult = await readFromRes(resource, sheetNameParam);
       let jsonSheet = fileResult.jsonSheet;
+      let fileDate = fileResult.fileDate;
       let source = "file";
 
       // applica filtri
