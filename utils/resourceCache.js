@@ -1,4 +1,4 @@
-import { dbGetItem } from "./indexedDb.js";
+import { dbGetItem, dbSetItem } from "./indexedDb.js";
 import { csvDecode } from "./csvStreams.js";
 
 export async function fetchCsvCached(input, init, user) {
