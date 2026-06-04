@@ -146,7 +146,8 @@ export async function GET(req) {
 
     // casistica
     if (cacheLwt) {
-      const csvFn = path.join("csv_cache", buildTableName(tenant, id) + ".csv");
+      const tableName = buildTableName(tenant, id);
+      const csvFn = path.join("csv_cache", tableName + ".csv");
 
       if (fs.existsSync(csvFn) && !filtering) {
         // 1) preleva dalla cache CSV
@@ -160,8 +161,7 @@ export async function GET(req) {
         // 2) preleva dal DB
         console.log(`Fonte: DB (${tableName})`);
 
-        // ottiene info tabella
-        const tableName = buildTableName(tenant, id);
+        // legge info tabella
         const tableColumns = await readTableInfo(pool, tableName);
 
         // crea clausola WHERE per il filtraggio
@@ -197,10 +197,10 @@ export async function GET(req) {
           filters.length > 0 ? "WHERE " + filters.join(" AND ") : undefined;
 
         // ottiene dal db dati e lwt
-        const res = await dbReadData(pool, tableName, filter, params);
+        const res = await dbReadData(pool, tenant, resource.id, filter, params);
 
         // manda stream in output
-        let jsonSheet = res.dbRows;
+        let jsonSheet = res.rows;
         let source = "db";
         let fileDate = res.lwt;
 
@@ -212,7 +212,7 @@ export async function GET(req) {
       }
     } else {
       // 3) fallback su file
-      console.log(`Fonte: risorsa originale (${resource})`);
+      console.log(`Fonte: risorsa originale (${resource.id})`);
 
       // legge il file
       const fileResult = await readFromRes(resource, sheetNameParam);
