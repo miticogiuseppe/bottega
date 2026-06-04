@@ -12,6 +12,7 @@ import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import { useRouter } from "next/navigation";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 // ─── Formattatori ─────────────────────────────────────────────────────────────
 const formatNum = (val, decimals = 2) => {
@@ -86,6 +87,8 @@ const DropdownSearch = ({ value, onChange, placeholder = "Cerca..." }) => (
 );
 
 const AcquistatoPage = () => {
+  const { username } = useContext(GlobalContext);
+
   const router = useRouter();
 
   const [session, setSession] = useState(null);
@@ -222,6 +225,8 @@ const AcquistatoPage = () => {
       try {
         const json = await fetchCsvCached(
           "/api/fetch-excel-json?id=STATISTICA_ACQUISTATO",
+          undefined,
+          username,
         );
         const rawData = json?.data ?? [];
 

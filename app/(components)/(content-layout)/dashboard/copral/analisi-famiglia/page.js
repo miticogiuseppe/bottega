@@ -13,6 +13,7 @@ import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 const formatNum = (val, decimals = 2) => {
   const n = Number(val) || 0;
@@ -68,6 +69,8 @@ const DropdownSearch = ({ value, onChange, placeholder = "Cerca..." }) => (
 );
 
 const AnalisiPerFamiglia = () => {
+  const { username } = useContext(GlobalContext);
+
   const [sheetData, setSheetData] = useState(undefined);
   const [isFetching, setIsFetching] = useState(true);
   const [openFamilies, setOpenFamilies] = useState(new Set());
@@ -118,6 +121,7 @@ const AnalisiPerFamiglia = () => {
         const json = await fetchCsvCached(
           "/api/fetch-excel-json?id=STATISTICA_VENDUTO_AGENTE",
           { signal: controller.signal },
+          username,
         );
         const rawData = json?.data ?? [];
         const parsedData = rawData.map((row) => ({

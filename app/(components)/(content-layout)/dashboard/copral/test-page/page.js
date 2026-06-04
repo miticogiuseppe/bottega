@@ -27,6 +27,7 @@ import { useTranslations } from "next-intl";
 import AppmerceTable from "@/components/AppmerceTable";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 // Componente ApexCharts caricato dinamicamente
 const Spkapexcharts = dynamic(
@@ -36,6 +37,8 @@ const Spkapexcharts = dynamic(
 );
 
 const Ecommerce = () => {
+  const { username } = useContext(GlobalContext);
+
   // Stati unificati e logica di filtro per data
   const [sheetData, setSheetData] = useState(undefined);
   const [startDate, setStartDate] = useState(null);
@@ -50,6 +53,8 @@ const Ecommerce = () => {
     const fetchData = async () => {
       const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
+        undefined,
+        username,
       );
       let data = json.data;
       data = parseDates(data, ["Data ord"]); // Converte le date

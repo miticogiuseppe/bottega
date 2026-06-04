@@ -14,6 +14,7 @@ import Preloader from "@/utils/Preloader";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 const variegati = {
   nome: "Variegati",
@@ -28,6 +29,8 @@ const variegati = {
 
 // COMPONENTE PRINCIPALE
 export default function PaginaVariegati() {
+  const { username } = useContext(GlobalContext);
+
   // Filtri TS Azienda
   const [pickerDateTS, setPickerDateTS] = useState(undefined);
   const [periodoTS, setPeriodoTS] = useState("mese");
@@ -43,6 +46,8 @@ export default function PaginaVariegati() {
     async function fetchData() {
       const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
+        undefined,
+        username,
       );
       let data = json.data;
       data = parseDates(data, ["Data ordine", "Data cons. rich."]);
@@ -58,6 +63,8 @@ export default function PaginaVariegati() {
     async function fetchData() {
       const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=VARIEGATI&sheet=Foglio1",
+        undefined,
+        username,
       );
       let data = json.data;
       data = parseDates(data, ["DATA"]);

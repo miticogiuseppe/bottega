@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 const mulini = {
   nome: "Mulini",
@@ -28,6 +29,8 @@ const mulini = {
 
 // COMPONENTE PRINCIPALE
 export default function PaginaMulini() {
+  const { username } = useContext(GlobalContext);
+
   // Filtri TS Azienda
   const [pickerDateTS, setPickerDateTS] = useState(undefined);
   const [periodoTS, setPeriodoTS] = useState("mese");
@@ -48,6 +51,8 @@ export default function PaginaMulini() {
     async function fetchData() {
       const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
+        undefined,
+        username,
       );
       let data = json.data;
       data = parseDates(data, ["Data ordine", "Data cons. rich."]);
@@ -63,6 +68,8 @@ export default function PaginaMulini() {
     async function fetchData() {
       const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=MULINI&sheet=Foglio1",
+        undefined,
+        username,
       );
       let data = json.data;
       data = parseDates(data, ["DATA"]);

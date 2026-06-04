@@ -15,6 +15,7 @@ import { Card, Col, Row } from "react-bootstrap";
 import moment from "moment";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 const resources = {
   fileAppmerce: "/api/download-resource?id=APPMERCE-000",
@@ -22,6 +23,8 @@ const resources = {
 };
 
 export default function PaginaPlotter() {
+  const { username } = useContext(GlobalContext);
+
   const [pickerDateTS, setPickerDateTS] = useState(undefined);
   const [periodoTS, setPeriodoTS] = useState("mese");
   const [pickerDateArt, setPickerDateArt] = useState(undefined);
@@ -36,6 +39,8 @@ export default function PaginaPlotter() {
       try {
         const json = await fetchCsvCached(
           "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
+          undefined,
+          username,
         );
         let fetchedData = parseDates(json.data, ["Data ord"]);
         setData(orderSheet(fetchedData, ["Data ord"], ["asc"]));

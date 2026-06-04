@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -26,6 +27,8 @@ const cellStyle = {
 };
 
 const ConfezionatriceChart = ({ id, colonne, tenant }) => {
+  const { username } = useContext(GlobalContext);
+
   const [dataChart, setDataChart] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -43,6 +46,8 @@ const ConfezionatriceChart = ({ id, colonne, tenant }) => {
 
         const json = await fetchCsvCached(
           `/api/fetch-excel-json?id=${encodeURIComponent(id)}`,
+          undefined,
+          username,
         );
 
         const normalized = json.map((row) => {

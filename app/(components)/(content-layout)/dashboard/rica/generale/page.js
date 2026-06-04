@@ -27,6 +27,7 @@ import { useTranslations } from "next-intl";
 import AppmerceTable from "@/components/AppmerceTable";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 // Componente ApexCharts caricato dinamicamente
 const Spkapexcharts = dynamic(
@@ -36,6 +37,8 @@ const Spkapexcharts = dynamic(
 );
 
 const Ecommerce = () => {
+  const { username } = useContext(GlobalContext);
+
   // Stati unificati e logica di filtro per data
   const [isLoading, setIsLoading] = useState(true);
   const [sheetData, setSheetData] = useState(undefined);
@@ -65,6 +68,8 @@ const Ecommerce = () => {
       // 1. Fetch del foglio Excel
       const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=ANALISI&sheet=_0000",
+        undefined,
+        username,
       );
       let data = json.data;
       data = parseDates(data, ["Data ordine"]); // Converte le date in oggetti Moment/Date

@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 const resources = {
   fileStorico: "/api/download-resource?id=STORICO_IMBALLATRICE",
@@ -21,6 +22,8 @@ const resources = {
 };
 
 export default function PaginaImballatrice() {
+  const { username } = useContext(GlobalContext);
+
   const [pickerDateTS, setPickerDateTS] = useState(undefined);
   const [periodoTS, setPeriodoTS] = useState("mese");
 
@@ -34,6 +37,8 @@ export default function PaginaImballatrice() {
     async function fetchData() {
       const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
+        undefined,
+        username,
       );
       let data = json.data;
 
@@ -50,6 +55,8 @@ export default function PaginaImballatrice() {
     async function fetchData() {
       const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=imballatrice_a&sheet=Foglio1",
+        undefined,
+        username,
       );
       let data = json.data;
       data = parseDates(data, ["Data"]);

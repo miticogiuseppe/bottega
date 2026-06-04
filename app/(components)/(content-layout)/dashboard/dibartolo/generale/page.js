@@ -18,6 +18,7 @@ import { IoIosCalendar } from "react-icons/io";
 import { PiPackage } from "react-icons/pi";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 // Componente ApexCharts caricato dinamicamente
 const Spkapexcharts = dynamic(
@@ -56,6 +57,8 @@ const barChartOptions = createOptions({
 });
 
 const Ecommerce = () => {
+  const { username } = useContext(GlobalContext);
+
   // Stati unificati e logica di filtro per data
   const [isLoading, setIsLoading] = useState(true);
   const [sheetData, setSheetData] = useState(undefined);
@@ -88,6 +91,8 @@ const Ecommerce = () => {
       // 1. Fetch del foglio Excel
       const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
+        undefined,
+        username,
       );
       let data = json.data;
       data = parseDates(data, ["Data ordine", "Data cons. rich."]); // Converte le date in oggetti Moment/Date

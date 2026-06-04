@@ -27,6 +27,7 @@ import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/s
 import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 const Spkapexcharts = dynamic(
   () =>
@@ -62,6 +63,8 @@ const MultiSelectItem = ({ label, checked, onToggle, bold = false }) => (
 );
 
 const Ecommerce = () => {
+  const { username } = useContext(GlobalContext);
+
   const [sheetData, setSheetData] = useState(undefined);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -86,6 +89,8 @@ const Ecommerce = () => {
     const fetchData = async () => {
       const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
+        undefined,
+        username,
       );
       let data = json.data;
       data = parseDates(data, ["Data ord"]);

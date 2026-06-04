@@ -16,8 +16,11 @@ import { PiPackage, PiTrendUp } from "react-icons/pi";
 import AppmerceTable from "@/components/AppmerceTable";
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 const VendutoCliente = () => {
+  const { username } = useContext(GlobalContext);
+
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +60,8 @@ const VendutoCliente = () => {
 
         const json = await fetchCsvCached(
           "/api/fetch-excel-json?id=STATISTICA_VENDUTO_CLIENTE",
+          undefined,
+          username,
         );
 
         if (json.data) {

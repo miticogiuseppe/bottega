@@ -10,8 +10,11 @@ import VendutoChart from "@/components/VendutoChart";
 import { useRouter } from "next/navigation"; // 1. Importa il router
 import { csvDecode } from "@/utils/csvDecode";
 import { fetchCsvCached } from "@/utils/csvDecode";
+import GlobalContext from "@/context/GlobalContext";
 
 const Venduto = () => {
+  const { username } = useContext(GlobalContext);
+
   const router = useRouter(); // 2. Inizializza il router
   const [isLoading, setIsLoading] = useState(true);
   const [top20Data, setTop20Data] = useState([]);
@@ -44,6 +47,8 @@ const Venduto = () => {
       try {
         const json = await fetchCsvCached(
           "/api/fetch-excel-json?id=TOP20_VENDUTO&sheet=TOP20_2025",
+          undefined,
+          username,
         );
 
         if (json.data) {

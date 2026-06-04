@@ -144,7 +144,8 @@ export async function csvDecode(webStream) {
   return { ...outp, data: result };
 }
 
-export async function fetchCsvCached(input, init) {
+export async function fetchCsvCached(input, init, user) {
+  input += "§" + user ?? "";
   let cached = await dbGetItem(input);
 
   let input2 = input;
