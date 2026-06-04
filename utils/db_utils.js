@@ -1,4 +1,4 @@
-// utils/db_utils.js
+import { buildTableName } from "@/utils/misc";
 
 export async function poolConnect(pool) {
   let client = await pool.connect();
@@ -59,15 +59,38 @@ export async function doQuery(pool, query, args) {
   throw new Error("Failed after max retries.");
 }
 
-export async function readFromDb(pool, tableName, filter, params) {
-  const result = await pool.query(
-    `SELECT * FROM "${tableName}" ${filter ?? ""}`,
-    params ?? [],
+export async function readLwt(pool, tenant, resource) {
+  const result = await doQuery(
+    pool,
+    `SELECT * FROM resource_lwt WHERE tenant=$1 AND resource=$2`,
+    [tenant, resource],
   );
-  return result.rows;
+  return result.rows[0]?.lwt;
 }
+
+export async function readFromDb(pool, tenant, resource, filter, params) {
+  let tableName = buildTableName(tenant, resource);
+
+  return await doTransaction(pool, async (client) => {
+    const query1 = await client.query(
+      `SELECT * FROM "${tableName}" ${filter ?? ""}`,
+      params ?? [],
+    );
+    const query2 = await client.query(
+      `SELECT * FROM resource_lwt WHERE tenant=$1 AND resource=$2`,
+      [tenant, resource],
+    );
+
+    return {
+      rows: query1.rows,
+      lwt: query2.rows[0]?.lwt,
+    };
+  });
+}
+
 export async function readTableInfo(pool, tableName) {
-  let query2 = await pool.query(
+  let query2 = await doQuery(
+    pool,
     `
       SELECT column_name, data_type
       FROM information_schema.columns

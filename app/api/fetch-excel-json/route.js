@@ -1,7 +1,7 @@
 import { check } from "@/utils/api";
 import { createCsvStream, createGzipStream } from "@/utils/csvStream";
 import { getPool } from "@/utils/db.js";
-import { readFromDb, readTableInfo } from "@/utils/db_utils";
+import { readFromDb, readTableInfo, readLwt } from "@/utils/db_utils";
 import { getFileInfo, getFileStats } from "@/utils/fileTools";
 import { buildTableName } from "@/utils/misc";
 import { getTokenData } from "@/utils/tokenData";
@@ -127,8 +127,12 @@ export async function GET(req) {
     console.log("Cliente:", codice_cliente);
     console.log("--------------------");
 
+    // get cache lwt
+    const cacheLwt = await readLwt(pool, tenant, resource);
+
     // get lwt
-    let fileDate = await getResDate(resource);
+    let fileDate = cacheLwt;
+    if (!fileDate) fileDate = await getResDate(resource);
 
     // compare lwt
     if (lwt === fileDate.toISOString())
@@ -136,73 +140,83 @@ export async function GET(req) {
         status: 204,
       });
 
-    // read data
+    // set variables
     let stream;
-
     let filtering = false;
     if (role === "AGENTE" && codice_agente) filtering = true;
     if (role === "CLIENTE" && codice_cliente) filtering = true;
-    const csvFn = path.join("csv_cache", buildTableName(tenant, id) + ".csv");
-    const tableName = buildTableName(tenant, id);
-    const tableColumns = await readTableInfo(pool, tableName);
 
     // casistica
-    if (fs.existsSync(csvFn) && !filtering) {
-      // 1) preleva dalla cache CSV
-      console.log(`Fonte: CSV (${csvFn})`);
+    if (cacheLwt) {
+      const csvFn = path.join("csv_cache", buildTableName(tenant, id) + ".csv");
 
-      const nodeStream = createReadStream(csvFn, {
-        highWaterMark: 4 * 1024 * 1024,
-      });
-      stream = Readable.toWeb(nodeStream);
-    } else if (tableColumns) {
-      // 2) preleva dal DB
-      console.log(`Fonte: DB (${tableName})`);
+      if (fs.existsSync(csvFn) && !filtering) {
+        // 1) preleva dalla cache CSV
+        console.log(`Fonte: CSV (${csvFn})`);
 
-      // crea clausola WHERE per il filtraggio
-      let filters = [],
-        params = [];
-      let prog = 0;
-      if (role === "AGENTE" && codice_agente) {
-        for (let col of agenteCols)
-          if (tableColumns[col]) {
-            let nomeAgente = agentMapping[codice_agente];
-            if (nomeAgente && tableColumns[col] === "character varying") {
-              filters.push(`("${col}" = $${++prog} OR "${col}" = $${++prog})`);
-              params.push(codice_agente);
-              params.push(agentMapping[codice_agente]);
-            } else {
-              filters.push(`"${col}" = $${++prog}`);
-              params.push(codice_agente);
+        const nodeStream = createReadStream(csvFn, {
+          highWaterMark: 4 * 1024 * 1024,
+        });
+        stream = Readable.toWeb(nodeStream);
+      } else {
+        // 2) preleva dal DB
+        console.log(`Fonte: DB (${tableName})`);
+
+        // ottiene info tabella
+        const tableName = buildTableName(tenant, id);
+        const tableColumns = await readTableInfo(pool, tableName);
+
+        // crea clausola WHERE per il filtraggio
+        let filters = [],
+          params = [];
+        let prog = 0;
+        if (role === "AGENTE" && codice_agente) {
+          for (let col of agenteCols)
+            if (tableColumns[col]) {
+              let nomeAgente = agentMapping[codice_agente];
+              if (nomeAgente && tableColumns[col] === "character varying") {
+                filters.push(
+                  `("${col}" = $${++prog} OR "${col}" = $${++prog})`,
+                );
+                params.push(codice_agente);
+                params.push(agentMapping[codice_agente]);
+              } else {
+                filters.push(`"${col}" = $${++prog}`);
+                params.push(codice_agente);
+              }
+              break;
             }
-            break;
-          }
+        }
+        if (role === "CLIENTE" && codice_cliente) {
+          for (let col of clienteCols)
+            if (tableColumns[col]) {
+              filters.push(`"${col}" = $${++prog}`);
+              params.push(codice_cliente);
+              break;
+            }
+        }
+        let filter =
+          filters.length > 0 ? "WHERE " + filters.join(" AND ") : undefined;
+
+        // ottiene dal db dati e lwt
+        const res = await readFromDb(pool, tableName, filter, params);
+
+        // manda stream in output
+        let jsonSheet = res.dbRows;
+        let source = "db";
+        fileDate = res.lwt;
+
+        let uncompressedStream = createCsvStream(jsonSheet, {
+          lwt: fileDate,
+          source,
+        });
+        stream = createGzipStream(uncompressedStream);
       }
-      if (role === "CLIENTE" && codice_cliente) {
-        for (let col of clienteCols)
-          if (tableColumns[col]) {
-            filters.push(`"${col}" = $${++prog}`);
-            params.push(codice_cliente);
-            break;
-          }
-      }
-      let filter =
-        filters.length > 0 ? "WHERE " + filters.join(" AND ") : undefined;
-
-      const dbRows = await readFromDb(pool, tableName, filter, params);
-
-      let jsonSheet = dbRows;
-      let source = "db";
-
-      let uncompressedStream = createCsvStream(jsonSheet, {
-        lwt: fileDate,
-        source,
-      });
-      stream = createGzipStream(uncompressedStream);
     } else {
       // 3) fallback su file
       console.log(`Fonte: risorsa originale (${resource})`);
 
+      // legge il file
       const fileResult = await readFromRes(resource, sheetNameParam);
       let jsonSheet = fileResult.jsonSheet;
       let source = "file";
@@ -210,6 +224,7 @@ export async function GET(req) {
       // applica filtri
       jsonSheet = applyFilters(jsonSheet, role, codice_agente, codice_cliente);
 
+      // manda stream
       let uncompressedStream = createCsvStream(jsonSheet, {
         lwt: fileDate,
         source,
