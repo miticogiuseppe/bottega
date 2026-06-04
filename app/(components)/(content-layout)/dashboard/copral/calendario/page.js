@@ -3,6 +3,7 @@ import OrderCalendar from "@/components/OrderCalendar";
 import { parseDates } from "@/utils/excelUtils";
 import { useEffect, useState } from "react";
 import { csvDecode } from "@/utils/csvDecode";
+import { fetchCached } from "@/utils/indexedDb";
 
 export default function Home() {
   const [orders, setOrders] = useState([]);
@@ -11,7 +12,7 @@ export default function Home() {
   useEffect(() => {
     // Carica automaticamente il file Excel
     const fetchOrders = async () => {
-      const response = await fetch(
+      const response = await fetchCached(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
       let json = await csvDecode(response.body);

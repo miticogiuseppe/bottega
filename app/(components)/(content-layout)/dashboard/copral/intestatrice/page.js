@@ -14,6 +14,7 @@ import { allowContextMenu } from "@fullcalendar/core/internal";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import { csvDecode } from "@/utils/csvDecode";
+import { fetchCached } from "@/utils/indexedDb";
 
 const resources = {
   // fileStorico: "/api/download-resource?id=STORICO_IMBALLATRICE",
@@ -32,7 +33,7 @@ export default function PaginaIntestatrice() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetch(
+      const response = await fetchCached(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
       let json = await csvDecode(response.body);
@@ -49,7 +50,7 @@ export default function PaginaIntestatrice() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetch(
+      const response = await fetchCached(
         "/api/fetch-excel-json?id=intestatrice&sheet=foglio1",
       );
       let json = await csvDecode(response.body);

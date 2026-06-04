@@ -26,6 +26,7 @@ import AppmerceTable from "@/components/AppmerceTable";
 import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import { csvDecode } from "@/utils/csvDecode";
+import { fetchCached } from "@/utils/indexedDb";
 
 const Spkapexcharts = dynamic(
   () =>
@@ -83,7 +84,7 @@ const Ecommerce = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch(
+      const response = await fetchCached(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
       let json = await csvDecode(response.body);

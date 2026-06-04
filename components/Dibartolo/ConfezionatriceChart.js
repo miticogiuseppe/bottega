@@ -5,6 +5,7 @@ import * as XLSX from "xlsx";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import { fetchCached } from "@/utils/indexedDb";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -24,21 +25,19 @@ const cellStyle = {
   textAlign: "center",
 };
 
-const loadSheet = async (idOrUrl, providedTenant) => {
+const loadSheet = async (id, providedTenant) => {
   const tenant = providedTenant
     ? providedTenant
     : typeof window !== "undefined"
-    ? window.location.pathname.split("/")[2]
-    : null;
-
-  const isApiPath = typeof idOrUrl === "string" && idOrUrl.startsWith("/api/");
-  const url = isApiPath
-    ? idOrUrl
-    : `/api/fetch-excel-json?id=${encodeURIComponent(idOrUrl)}`;
+      ? window.location.pathname.split("/")[2]
+      : null;
 
   const headers = tenant ? { "x-tenant": tenant } : {};
 
-  const response = await fetch(url, { headers });
+  const response = await fetchCached(
+    `/api/fetch-excel-json?id=${encodeURIComponent(id)}`,
+    { headers },
+  );
   if (!response.ok) {
     let msg;
     try {
@@ -50,7 +49,7 @@ const loadSheet = async (idOrUrl, providedTenant) => {
       msg = await clone2.text();
     }
     throw new Error(
-      `Impossibile trovare o leggere il file con id: ${idOrUrl} -> ${msg}`
+      `Impossibile trovare o leggere il file con id: ${idOrUrl} -> ${msg}`,
     );
   }
 
@@ -68,7 +67,7 @@ const loadSheet = async (idOrUrl, providedTenant) => {
   return XLSX.utils.sheet_to_json(sheet, { defval: "" });
 };
 
-const ConfezionatriceChart = ({ file, colonne, tenant }) => {
+const ConfezionatriceChart = ({ id, colonne, tenant }) => {
   const [dataChart, setDataChart] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -79,12 +78,12 @@ const ConfezionatriceChart = ({ file, colonne, tenant }) => {
     let isMounted = true;
 
     const fetchData = async () => {
-      if (!isMounted || !file) return;
+      if (!isMounted || !id) return;
       try {
         setLoading(true);
         setErrorMsg("");
 
-        const jsonSheet = await loadSheet(file, tenant);
+        const jsonSheet = await loadSheet(id, tenant);
 
         const normalized = jsonSheet.map((row) => {
           const rawDate = row[colonne.dataOra];
@@ -128,7 +127,8 @@ const ConfezionatriceChart = ({ file, colonne, tenant }) => {
     const selected = dayjs(filterDate);
     if (selected.isValid()) {
       filtered = filtered.filter(
-        (r) => r._parsedDate?.isValid() && r._parsedDate.isSame(selected, "day")
+        (r) =>
+          r._parsedDate?.isValid() && r._parsedDate.isSame(selected, "day"),
       );
     }
   }

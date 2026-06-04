@@ -17,6 +17,7 @@ import { FaUsers } from "react-icons/fa6";
 import { IoIosCalendar } from "react-icons/io";
 import { PiPackage } from "react-icons/pi";
 import { csvDecode } from "@/utils/csvDecode";
+import { fetchCached } from "@/utils/indexedDb";
 
 // Componente ApexCharts caricato dinamicamente
 const Spkapexcharts = dynamic(
@@ -85,7 +86,7 @@ const Ecommerce = () => {
   useEffect(() => {
     const fetchData = async () => {
       // 1. Fetch del foglio Excel
-      const response = await fetch(
+      const response = await fetchCached(
         "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
       );
       let json = await csvDecode(response.body);

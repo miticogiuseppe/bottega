@@ -11,6 +11,7 @@ import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 import { csvDecode } from "@/utils/csvDecode";
+import { fetchCached } from "@/utils/indexedDb";
 
 const formatNum = (val, decimals = 2) => {
   const n = Number(val) || 0;
@@ -117,7 +118,7 @@ const StatisticheVendutoCopral = () => {
     const controller = new AbortController();
     const fetchData = async () => {
       try {
-        const response = await fetch(
+        const response = await fetchCached(
           "/api/fetch-excel-json?id=STATISTICA_VENDUTO_AGENTE",
           { signal: controller.signal },
         );

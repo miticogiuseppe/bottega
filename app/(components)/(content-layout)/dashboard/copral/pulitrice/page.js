@@ -13,6 +13,7 @@ import Preloader from "@/utils/Preloader";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import { csvDecode } from "@/utils/csvDecode";
+import { fetchCached } from "@/utils/indexedDb";
 
 const resources = {
   // fileStorico: "/api/download-resource?id=STORICO_IMBALLATRICE",
@@ -32,7 +33,7 @@ export default function PaginaPulitrice() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetch(
+      const response = await fetchCached(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
       let json = await csvDecode(response.body);
@@ -49,7 +50,7 @@ export default function PaginaPulitrice() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetch(
+      const response = await fetchCached(
         "/api/fetch-excel-json?id=pulitrice&sheet=Arsv",
       );
       let json = await csvDecode(response.body);

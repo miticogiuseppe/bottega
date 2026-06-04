@@ -9,6 +9,7 @@ import { formatCurrency } from "@/utils/currency";
 import VendutoChart from "@/components/VendutoChart";
 import { useRouter } from "next/navigation"; // 1. Importa il router
 import { csvDecode } from "@/utils/csvDecode";
+import { fetchCached } from "@/utils/indexedDb";
 
 const Venduto = () => {
   const router = useRouter(); // 2. Inizializza il router
@@ -41,7 +42,7 @@ const Venduto = () => {
       setIsAuthorized(true);
 
       try {
-        const response = await fetch(
+        const response = await fetchCached(
           "/api/fetch-excel-json?id=TOP20_VENDUTO&sheet=TOP20_2025",
         );
         let json = await csvDecode(response.body);

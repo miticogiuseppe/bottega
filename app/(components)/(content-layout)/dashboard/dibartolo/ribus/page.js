@@ -13,6 +13,7 @@ import Preloader from "@/utils/Preloader";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import { csvDecode } from "@/utils/csvDecode";
+import { fetchCached } from "@/utils/indexedDb";
 
 const ribus = {
   nome: "Ribus",
@@ -40,7 +41,7 @@ export default function PaginaRibus() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetch(
+      const response = await fetchCached(
         "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
       );
       let json = await csvDecode(response.body);
@@ -56,7 +57,7 @@ export default function PaginaRibus() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetch(
+      const response = await fetchCached(
         "/api/fetch-excel-json?id=RIBUS&sheet=Foglio1",
       );
       let json = await csvDecode(response.body);
