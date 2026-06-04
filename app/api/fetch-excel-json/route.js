@@ -151,7 +151,7 @@ export async function GET(req) {
 
       if (fs.existsSync(csvFn) && !filtering) {
         // 1) preleva dalla cache CSV
-        console.log(`Fonte: CSV (${csvFn})`);
+        console.log(`Fonte: cache CSV (${csvFn})`);
 
         const nodeStream = createReadStream(csvFn, {
           highWaterMark: 4 * 1024 * 1024,
@@ -159,7 +159,7 @@ export async function GET(req) {
         stream = Readable.toWeb(nodeStream);
       } else {
         // 2) preleva dal DB
-        console.log(`Fonte: DB (${tableName})`);
+        console.log(`Fonte: cache DB (${tableName})`);
 
         // legge info tabella
         const tableColumns = await readTableInfo(pool, tableName);
@@ -212,7 +212,7 @@ export async function GET(req) {
       }
     } else {
       // 3) fallback su file
-      console.log(`Fonte: risorsa originale (${resource.id})`);
+      console.log(`Fonte: file originale (${resource.id})`);
 
       // legge il file
       const fileResult = await readFromRes(resource, sheetNameParam);
