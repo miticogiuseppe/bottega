@@ -1,3 +1,5 @@
+import { dbGetItem, dbSetItem } from "@/utils/indexedDb";
+
 function convert(value, quoted) {
   if (quoted) return value; // stringa SEMPRE
 
@@ -140,4 +142,18 @@ export async function csvDecode(webStream) {
   if (buffer) result.push(parseLine(buffer));
 
   return { ...outp, data: result };
+}
+
+export async function fetchCsvCached(input, init) {
+  let cached = await dbGetItem(input);
+
+  let input2 = input;
+  if (cached) input2 += "&lwt=" + encodeURIComponent(cached.lwt);
+
+  const response = await fetch(input2, init);
+  if (response.status === 204) return cached;
+
+  let json = await csvDecode(response.body);
+  await dbSetItem(input, json);
+  return json;
 }

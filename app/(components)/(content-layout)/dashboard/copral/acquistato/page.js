@@ -11,7 +11,7 @@ import DateRangeFilter from "@/components/Copral/DaterangeFilter";
 import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import { useRouter } from "next/navigation";
 import { csvDecode } from "@/utils/csvDecode";
-import { fetchCached } from "@/utils/indexedDb";
+import { fetchCsvCached } from "@/utils/csvDecode";
 
 // ─── Formattatori ─────────────────────────────────────────────────────────────
 const formatNum = (val, decimals = 2) => {
@@ -220,10 +220,9 @@ const AcquistatoPage = () => {
       setIsAuthorized(true);
 
       try {
-        const response = await fetchCached(
+        const json = await fetchCsvCached(
           "/api/fetch-excel-json?id=STATISTICA_ACQUISTATO",
         );
-        let json = await csvDecode(response.body);
         const rawData = json?.data ?? [];
 
         // ── DEBUG temporaneo: verifica nomi colonne e valori ──

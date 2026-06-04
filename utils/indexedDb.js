@@ -48,8 +48,3 @@ export async function dbRemoveItem(key) {
 
   store.delete(key);
 }
-
-export async function fetchCached(input, init) {
-  const response = await fetch(input, init);
-  return response;
-}

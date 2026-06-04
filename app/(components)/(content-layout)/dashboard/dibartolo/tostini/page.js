@@ -13,7 +13,7 @@ import Preloader from "@/utils/Preloader";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import { csvDecode } from "@/utils/csvDecode";
-import { fetchCached } from "@/utils/indexedDb";
+import { fetchCsvCached } from "@/utils/csvDecode";
 
 const tostini = {
   nome: "Tostini",
@@ -41,10 +41,9 @@ export default function PaginaTostini() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetchCached(
+      const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
       );
-      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data ordine", "Data cons. rich."]);
       data = orderSheet(data, ["Data ordine"], ["asc"]);
@@ -57,10 +56,9 @@ export default function PaginaTostini() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetchCached(
+      const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=TOSTINI&sheet=Foglio1",
       );
-      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data"]);
       data = orderSheet(data, ["Data"], ["asc"]);

@@ -3,7 +3,7 @@ import OrdersDibartolo from "@/components/OrdersDibartolo";
 import { csvDecode } from "@/utils/csvDecode";
 import { parseDates } from "@/utils/excelUtils";
 import { useEffect, useState } from "react";
-import { fetchCached } from "@/utils/indexedDb";
+import { fetchCsvCached } from "@/utils/csvDecode";
 
 export default function Calendar() {
   const [orders, setOrders] = useState([]);
@@ -11,10 +11,9 @@ export default function Calendar() {
   useEffect(() => {
     // Carica automaticamente il file Excel
     const fetchOrders = async () => {
-      const response = await fetchCached(
+      const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
       );
-      let json = await csvDecode(response.body);
       let newOrders = json.data;
       newOrders = parseDates(newOrders, ["Data cons. rich."]);
       setOrders(newOrders);

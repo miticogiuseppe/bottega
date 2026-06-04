@@ -14,7 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import moment from "moment";
 import { csvDecode } from "@/utils/csvDecode";
-import { fetchCached } from "@/utils/indexedDb";
+import { fetchCsvCached } from "@/utils/csvDecode";
 
 const resources = {
   fileAppmerce: "/api/download-resource?id=APPMERCE-000",
@@ -34,10 +34,9 @@ export default function PaginaPlotter() {
   useEffect(() => {
     async function fetchOrders() {
       try {
-        const response = await fetchCached(
+        const json = await fetchCsvCached(
           "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
         );
-        let json = await csvDecode(response.body);
         let fetchedData = parseDates(json.data, ["Data ord"]);
         setData(orderSheet(fetchedData, ["Data ord"], ["asc"]));
       } catch (error) {

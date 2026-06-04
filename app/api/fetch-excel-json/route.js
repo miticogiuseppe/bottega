@@ -26,45 +26,26 @@ const agentMapping = fs.existsSync(mappingPath)
 
 // Legge dal file (logica attuale invariata)
 async function readFromRes(resource, sheetNameParam) {
-  const filePath = path.join(process.env.DRIVE_PATH, resource.path);
-  const jsonFile = path.join(
-    process.env.DRIVE_PATH,
-    path.parse(resource.path).dir,
-    path.parse(resource.path).name + ".json",
-  );
-
   let jsonSheet, fileDate;
 
-  if (fs.existsSync(jsonFile)) {
-    const data = fs.readFileSync(jsonFile, "utf-8");
-    jsonSheet = JSON.parse(data);
-    const fileInfo = await getFileInfo(jsonFile);
-    fileDate = fileInfo.mtime;
-  } else {
-    console.log(`JSON not found: ${jsonFile}. Reading XLS.`);
-    const fileBuffer = fs.readFileSync(filePath);
-    const workbook = XLSX.read(fileBuffer, { type: "buffer" });
-    const sheetName =
-      sheetNameParam && workbook.SheetNames.includes(sheetNameParam)
-        ? sheetNameParam
-        : workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    jsonSheet = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-    const fileInfo = await getFileInfo(filePath);
-    fileDate = fileInfo.mtime;
-  }
+  const filePath = path.join(process.env.DRIVE_PATH, resource.path);
+  const fileBuffer = fs.readFileSync(filePath);
+  const workbook = XLSX.read(fileBuffer, { type: "buffer" });
+  const sheetName =
+    sheetNameParam && workbook.SheetNames.includes(sheetNameParam)
+      ? sheetNameParam
+      : workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  jsonSheet = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+  const fileInfo = await getFileInfo(filePath);
+  fileDate = fileInfo.mtime;
 
   return { jsonSheet, fileDate };
 }
 async function getResDate(resource) {
   const filePath = path.join(process.env.DRIVE_PATH, resource.path);
-  const jsonFile = path.join(
-    process.env.DRIVE_PATH,
-    path.parse(resource.path).dir,
-    path.parse(resource.path).name + ".json",
-  );
 
-  const fileInfo = getFileStats(jsonFile) ?? getFileStats(filePath);
+  const fileInfo = getFileStats(filePath);
   return fileInfo.mtime;
 }
 
@@ -114,6 +95,7 @@ export async function GET(req) {
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
+    const lwt = searchParams.get("lwt");
     const sheetNameParam = searchParams.get("sheet");
 
     if (!id)
@@ -145,6 +127,16 @@ export async function GET(req) {
     console.log("Cliente:", codice_cliente);
     console.log("--------------------");
 
+    // get lwt
+    let fileDate = await getResDate(resource);
+
+    // compare lwt
+    if (lwt === fileDate.toISOString())
+      return new Response(null, {
+        status: 204,
+      });
+
+    // read data
     let stream;
 
     let filtering = false;
@@ -200,7 +192,6 @@ export async function GET(req) {
       const dbRows = await readFromDb(pool, tableName, filter, params);
 
       let jsonSheet = dbRows;
-      let fileDate = await getResDate(resource);
       let source = "db";
 
       let uncompressedStream = createCsvStream(jsonSheet, {
@@ -214,7 +205,6 @@ export async function GET(req) {
 
       const fileResult = await readFromRes(resource, sheetNameParam);
       let jsonSheet = fileResult.jsonSheet;
-      let fileDate = fileResult.fileDate;
       let source = "file";
 
       // applica filtri

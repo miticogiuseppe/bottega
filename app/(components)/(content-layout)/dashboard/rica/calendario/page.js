@@ -3,7 +3,7 @@ import OrdersRica from "@/components/OrdersRica";
 import { parseDates } from "@/utils/excelUtils";
 import { useEffect, useState } from "react";
 import { csvDecode } from "@/utils/csvDecode";
-import { fetchCached } from "@/utils/indexedDb";
+import { fetchCsvCached } from "@/utils/csvDecode";
 
 export default function Home() {
   const [orders, setOrders] = useState([]);
@@ -11,10 +11,9 @@ export default function Home() {
   useEffect(() => {
     // Carica automaticamente il file Excel
     const fetchOrders = async () => {
-      const response = await fetchCached(
+      const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=ANALISI&sheet=_0000",
       );
-      let json = await csvDecode(response.body);
       let newOrders = json.data;
       newOrders = parseDates(newOrders, ["Data prevista consegna"]);
       setOrders(newOrders);

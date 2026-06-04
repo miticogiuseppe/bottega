@@ -13,7 +13,7 @@ import { orderSheet, parseDates } from "@/utils/excelUtils";
 import Preloader from "@/utils/Preloader";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
-import { fetchCached } from "@/utils/indexedDb";
+import { fetchCsvCached } from "@/utils/csvDecode";
 
 const variegati = {
   nome: "Variegati",
@@ -41,10 +41,9 @@ export default function PaginaVariegati() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetchCached(
+      const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
       );
-      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data ordine", "Data cons. rich."]);
       data = orderSheet(data, ["Data ordine"], ["asc"]);
@@ -57,10 +56,9 @@ export default function PaginaVariegati() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetchCached(
+      const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=VARIEGATI&sheet=Foglio1",
       );
-      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["DATA"]);
       data = orderSheet(data, ["DATA"], ["asc"]);

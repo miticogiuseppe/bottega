@@ -26,7 +26,7 @@ import { PiPackage } from "react-icons/pi";
 import { useTranslations } from "next-intl";
 import AppmerceTable from "@/components/AppmerceTable";
 import { csvDecode } from "@/utils/csvDecode";
-import { fetchCached } from "@/utils/indexedDb";
+import { fetchCsvCached } from "@/utils/csvDecode";
 
 // Componente ApexCharts caricato dinamicamente
 const Spkapexcharts = dynamic(
@@ -63,10 +63,9 @@ const Ecommerce = () => {
   useEffect(() => {
     const fetchData = async () => {
       // 1. Fetch del foglio Excel
-      const response = await fetchCached(
+      const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=APPMERCE-000&sheet=APPMERCE-000_1",
       );
-      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data ord"]); // Converte le date in oggetti Moment/Date
       setSheetData(data);

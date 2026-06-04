@@ -13,7 +13,7 @@ import Preloader from "@/utils/Preloader";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import { csvDecode } from "@/utils/csvDecode";
-import { fetchCached } from "@/utils/indexedDb";
+import { fetchCsvCached } from "@/utils/csvDecode";
 
 const confezionatrice = {
   nome: "Confezionatrice",
@@ -41,10 +41,9 @@ export default function PaginaConfezionatrice() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetchCached(
+      const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=ANALISI&sheet=appmerce_db",
       );
-      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data ordine", "Data cons. rich."]);
       data = orderSheet(data, ["Data ordine"], ["asc"]);
@@ -57,10 +56,9 @@ export default function PaginaConfezionatrice() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetchCached(
+      const json = await fetchCsvCached(
         "/api/fetch-excel-json?id=CONFEZIONATRICE&sheet=Foglio1",
       );
-      let json = await csvDecode(response.body);
       let data = json.data;
       data = parseDates(data, ["Data e Ora"]);
       data = orderSheet(data, ["Data e Ora"], ["asc"]);
