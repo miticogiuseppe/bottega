@@ -6,7 +6,7 @@ import path from "path";
 import copyFrom from "pg-copy-streams";
 import { Readable } from "stream";
 import xlsx from "xlsx";
-import { createCsvStream, createGzipStream } from "./utils/streamsCsv.js";
+import { createCsvStream, createGzipStream } from "./utils/csvStreams.js";
 import { getPool } from "./utils/db.js";
 import { doTransaction } from "./utils/db_utils.js";
 import { getFileStats } from "./utils/fileTools.js";

@@ -1,5 +1,5 @@
 import { dbGetItem } from "./indexedDb.js";
-import { csvDecode } from "./streamsCsv.js";
+import { csvDecode } from "./csvStreams.js";
 
 export async function fetchCsvCached(input, init, user) {
   let key = input + "§" + (user ?? "");
