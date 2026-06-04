@@ -1,5 +1,6 @@
 "use client";
 import AppmerceTable from "@/components/AppmerceTable";
+import GlobalContext from "@/context/GlobalContext";
 import "@/lib/chart-setup";
 import Spkcardscomponent from "@/shared/@spk-reusable-components/reusable-dashboards/spk-cards";
 import Pageheader from "@/shared/layouts-components/page-header/pageheader";
@@ -8,18 +9,15 @@ import { extractUniques, parseDates, sumByKey } from "@/utils/excelUtils";
 import { formatDate, formatTime } from "@/utils/format";
 import { createOptions } from "@/utils/graphUtils";
 import Preloader from "@/utils/Preloader";
+import { fetchCsvCached } from "@/utils/resourceCache";
 import _ from "lodash";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import { FaUsers } from "react-icons/fa6";
 import { IoIosCalendar } from "react-icons/io";
 import { PiPackage } from "react-icons/pi";
-import { csvDecode } from "@/utils/csvDecode";
-import { fetchCsvCached } from "@/utils/csvDecode";
-import GlobalContext from "@/context/GlobalContext";
-import { useContext } from "react";
 
 // Componente ApexCharts caricato dinamicamente
 const Spkapexcharts = dynamic(

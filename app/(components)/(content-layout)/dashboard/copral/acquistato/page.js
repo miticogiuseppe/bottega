@@ -1,19 +1,17 @@
 "use client";
-import React, { useEffect, useState, useMemo, Fragment } from "react";
-import { Row, Col, Card, Form, Dropdown } from "react-bootstrap";
+import DateRangeFilter from "@/components/Copral/DaterangeFilter";
+import GlobalContext from "@/context/GlobalContext";
+import Spkcardscomponent from "@/shared/@spk-reusable-components/reusable-dashboards/spk-cards";
+import SpkBadge from "@/shared/@spk-reusable-components/reusable-uielements/spk-badge";
+import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
 import Pageheader from "@/shared/layouts-components/page-header/pageheader";
 import Seo from "@/shared/layouts-components/seo/seo";
+import { fetchCsvCached } from "@/utils/resourceCache";
 import Preloader from "@/utils/Preloader";
-import SpkBadge from "@/shared/@spk-reusable-components/reusable-uielements/spk-badge";
-import Spkcardscomponent from "@/shared/@spk-reusable-components/reusable-dashboards/spk-cards";
-import SpkDropdown from "@/shared/@spk-reusable-components/reusable-uielements/spk-dropdown";
-import DateRangeFilter from "@/components/Copral/DaterangeFilter";
-import { PiMoneyThin, PiScalesThin, PiPackageThin } from "react-icons/pi";
 import { useRouter } from "next/navigation";
-import { csvDecode } from "@/utils/csvDecode";
-import { fetchCsvCached } from "@/utils/csvDecode";
-import GlobalContext from "@/context/GlobalContext";
-import { useContext } from "react";
+import { Fragment, useContext, useEffect, useMemo, useState } from "react";
+import { Card, Col, Dropdown, Form, Row } from "react-bootstrap";
+import { PiMoneyThin, PiPackageThin, PiScalesThin } from "react-icons/pi";
 
 // ─── Formattatori ─────────────────────────────────────────────────────────────
 const formatNum = (val, decimals = 2) => {

@@ -1,5 +1,7 @@
 "use client";
+import AppmerceTable from "@/components/AppmerceTable";
 import PeriodDropdown from "@/components/PeriodDropdown";
+import GlobalContext from "@/context/GlobalContext";
 import "@/lib/chart-setup";
 import Spkcardscomponent from "@/shared/@spk-reusable-components/reusable-dashboards/spk-cards";
 import Pageheader from "@/shared/layouts-components/page-header/pageheader";
@@ -10,25 +12,21 @@ import { formatDate, formatTime } from "@/utils/format";
 import {
   createOptions,
   createSeries,
+  currencyFormatter,
   pieOptions,
   randomColor,
-  currencyFormatter,
 } from "@/utils/graphUtils";
 import Preloader from "@/utils/Preloader";
+import { fetchCsvCached } from "@/utils/resourceCache";
 import _ from "lodash";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Card, Col, Row } from "react-bootstrap";
 import { Pie } from "react-chartjs-2";
 import { FaUsers } from "react-icons/fa6";
 import { IoIosCalendar } from "react-icons/io";
 import { PiPackage } from "react-icons/pi";
-import { useTranslations } from "next-intl";
-import AppmerceTable from "@/components/AppmerceTable";
-import { csvDecode } from "@/utils/csvDecode";
-import { fetchCsvCached } from "@/utils/csvDecode";
-import GlobalContext from "@/context/GlobalContext";
-import { useContext } from "react";
 
 // Componente ApexCharts caricato dinamicamente
 const Spkapexcharts = dynamic(

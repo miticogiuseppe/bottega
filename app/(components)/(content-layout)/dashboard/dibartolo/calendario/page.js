@@ -1,11 +1,9 @@
 "use client";
 import OrdersDibartolo from "@/components/OrdersDibartolo";
-import { csvDecode } from "@/utils/csvDecode";
-import { parseDates } from "@/utils/excelUtils";
-import { useEffect, useState } from "react";
-import { fetchCsvCached } from "@/utils/csvDecode";
 import GlobalContext from "@/context/GlobalContext";
-import { useContext } from "react";
+import { parseDates } from "@/utils/excelUtils";
+import { fetchCsvCached } from "@/utils/resourceCache";
+import { useContext, useEffect, useState } from "react";
 
 export default function Calendar() {
   const { username } = useContext(GlobalContext);

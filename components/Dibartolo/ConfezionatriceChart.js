@@ -5,7 +5,7 @@ import * as XLSX from "xlsx";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-import { fetchCsvCached } from "@/utils/csvDecode";
+import { fetchCsvCached } from "@/utils/resourceCache";
 import GlobalContext from "@/context/GlobalContext";
 import { useContext } from "react";
 

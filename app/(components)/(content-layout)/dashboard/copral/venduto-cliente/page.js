@@ -14,9 +14,8 @@ import { FaEuroSign, FaUserFriends } from "react-icons/fa";
 import { PiPackage, PiTrendUp } from "react-icons/pi";
 
 import AppmerceTable from "@/components/AppmerceTable";
-import { csvDecode } from "@/utils/csvDecode";
-import { fetchCsvCached } from "@/utils/csvDecode";
 import GlobalContext from "@/context/GlobalContext";
+import { fetchCsvCached } from "@/utils/resourceCache";
 import { useContext } from "react";
 
 const VendutoCliente = () => {

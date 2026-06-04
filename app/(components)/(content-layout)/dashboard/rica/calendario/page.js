@@ -1,11 +1,9 @@
 "use client";
 import OrdersRica from "@/components/OrdersRica";
-import { parseDates } from "@/utils/excelUtils";
-import { useEffect, useState } from "react";
-import { csvDecode } from "@/utils/csvDecode";
-import { fetchCsvCached } from "@/utils/csvDecode";
 import GlobalContext from "@/context/GlobalContext";
-import { useContext } from "react";
+import { parseDates } from "@/utils/excelUtils";
+import { fetchCsvCached } from "@/utils/resourceCache";
+import { useContext, useEffect, useState } from "react";
 
 export default function Home() {
   const { username } = useContext(GlobalContext);
