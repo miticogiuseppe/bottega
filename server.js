@@ -141,16 +141,6 @@ function enqueueFile(tenant, file) {
           await client.query(`CREATE INDEX ON "${tableName}" ("${i}")`);
         }
       }
-
-      // aggiorna lwt
-      await client.query(
-        `DELETE FROM resource_lwt WHERE tenant=$1 AND resource=$2`,
-        [tenant, file.id],
-      );
-      await client.query(`INSERT INTO resource_lwt VALUES($1,$2,$3)`, [
-        tenant,
-        file.id,
-      ]);
     });
 
     // ottiene dati file
@@ -173,15 +163,17 @@ function enqueueFile(tenant, file) {
     });
 
     // aggiorna lwt
-    await client.query(
-      `DELETE FROM resource_lwt WHERE tenant=$1 AND resource=$2`,
-      [tenant, file.id],
-    );
-    await client.query(`INSERT INTO resource_lwt VALUES($1,$2,$3)`, [
-      tenant,
-      file.id,
-      fileDate.toISOString(),
-    ]);
+    await doTransaction(pool, async (client) => {
+      await client.query(
+        `DELETE FROM resource_lwt WHERE tenant=$1 AND resource=$2`,
+        [tenant, file.id],
+      );
+      await client.query(`INSERT INTO resource_lwt VALUES($1,$2,$3)`, [
+        tenant,
+        file.id,
+        fileDate.toISOString(),
+      ]);
+    });
 
     console.log(`  ✅ ${tenant}/${file.id} importato`);
   });
