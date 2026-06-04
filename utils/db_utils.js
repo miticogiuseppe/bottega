@@ -1,4 +1,4 @@
-import { buildTableName } from "@/utils/misc";
+import { buildTableName } from "./misc.js";
 
 export async function poolConnect(pool) {
   let client = await pool.connect();

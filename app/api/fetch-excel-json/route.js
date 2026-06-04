@@ -128,12 +128,12 @@ export async function GET(req) {
     console.log("--------------------");
 
     // get lwt
-    const cacheLwt = await dbReadLwt(pool, tenant, resource);
+    const cacheLwt = await dbReadLwt(pool, tenant, resource.id);
     const fileLwt = await getResDate(resource);
-    const merge_lwt = (cacheLwt ?? fileLwt).toISOString();
+    const mergeLwt = cacheLwt ?? fileLwt.toISOString();
 
     // compare lwt
-    if (lwt === merge_lwt)
+    if (lwt === mergeLwt)
       return new Response(null, {
         status: 204,
       });
