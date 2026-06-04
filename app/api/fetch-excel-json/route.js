@@ -1,15 +1,15 @@
 import { check } from "@/utils/api";
 import { createCsvStream, createGzipStream } from "@/utils/csvStreams";
+import { readTableInfo } from "@/utils/db";
 import { getPool } from "@/utils/db.js";
-import { dbReadData, readTableInfo, dbReadLwt } from "@/utils/db_utils";
+import { dbReadData, dbReadLwt } from "@/utils/db_utils";
 import { getFileInfo, getFileStats } from "@/utils/fileTools";
 import { buildTableName } from "@/utils/misc";
 import { getTokenData } from "@/utils/tokenData";
-import fs from "fs";
+import fs, { createReadStream } from "fs";
 import path from "path";
-import * as XLSX from "xlsx";
-import { createReadStream } from "fs";
 import { Readable } from "stream";
+import * as XLSX from "xlsx";
 
 const pool = getPool();
 
